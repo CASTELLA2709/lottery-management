@@ -257,146 +257,210 @@ body {
 
 
 /* =========================
-   抽選一覧
+   応募グループ一覧
 ========================= */
 
-.lottery-list {
-
-    padding: 0 15px;
+.group-list {
+    padding: 10px 15px;
 }
 
-
-.lottery-item {
-
-    padding: 15px 5px;
-
-    border-bottom: 1px solid #eeeeee;
-
-    position: relative;
+.group-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 14px;
+    padding: 15px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-
-.lottery-top {
-
+.group-card-header {
     display: flex;
-
-    align-items: center;
-
-    gap: 8px;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
-
-.status-label {
-
-    border-radius: 6px;
-
-    padding: 5px 8px;
-
-    font-size: 11px;
-
-    white-space: nowrap;
+.group-name {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.4;
 }
 
-
-.status-label.applying {
-
-    color: #299036;
-
-    background: #eaf8ea;
-}
-
-
-.status-label.waiting {
-
-    color: #d57500;
-
-    background: #fff2df;
-}
-
-
-.status-label.planned {
-
-    color: #0867c7;
-
-    background: #e7f2ff;
-}
-
-
-.status-label.winning {
-
-    color: #d72c62;
-
-    background: #ffe7ef;
-}
-
-
-.lottery-name {
-
-    font-size: 15px;
-
-    font-weight: 600;
-}
-
-
-.lottery-date {
-
-    margin-top: 7px;
-
-    margin-left: 2px;
-
+.group-summary {
+    margin-top: 4px;
     font-size: 12px;
-
-    color: #555;
+    color: #777;
 }
 
-
-.arrow {
-
-    position: absolute;
-
-    right: 3px;
-
-    top: 50%;
-
-    font-size: 22px;
-
-    color: #176bc4;
+.favorite {
+    color: #f5b400;
+    margin-left: 5px;
 }
 
 
 /* =========================
-   新規登録ボタン
+   抽選・先着バッジ
 ========================= */
 
-.add-button {
+.group-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+}
 
-    display: block;
-
-    width: calc(100% - 40px);
-
-    margin: 25px auto;
-
-    padding: 14px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background: #1675e5;
-
-    color: white;
-
-    font-size: 16px;
-
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 600;
+}
+
+.badge.lottery {
+    background: #fff1df;
+    color: #d57500;
+}
+
+.badge.first-come {
+    background: #e7f2ff;
+    color: #0867c7;
+}
+
+.badge.other {
+    background: #eeeeee;
+    color: #555555;
+}
+
+
+/* =========================
+   応募枠
+========================= */
+
+.entry-mini-list {
+    margin-top: 10px;
+}
+
+.entry-mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+
+    padding: 10px 0;
+
+    border-top: 1px solid #eeeeee;
+}
+
+.entry-mini-left {
+    min-width: 0;
+    flex: 1;
+}
+
+.entry-mini-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.entry-mini-date {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #666666;
+    line-height: 1.5;
+}
+
+.entry-mini-status {
+    flex-shrink: 0;
+
+    padding: 5px 8px;
+
+    border-radius: 6px;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
+/* =========================
+   ステータス
+========================= */
+
+.status-planned {
+    background: #e7f2ff;
+    color: #0867c7;
+}
+
+.status-applying {
+    background: #eaf8ea;
+    color: #298d35;
+}
+
+.status-waiting {
+    background: #fff2df;
+    color: #d57500;
+}
+
+.status-won {
+    background: #ffe7ef;
+    color: #d72c62;
+}
+
+.status-lost {
+    background: #eeeeee;
+    color: #666666;
+}
+
+.status-completed {
+    background: #e8e8e8;
+    color: #555555;
+}
+
+.status-cancelled {
+    background: #eeeeee;
+    color: #999999;
+}
+
+
+/* =========================
+   グループ操作ボタン
+========================= */
+
+.group-actions {
+    display: flex;
+    gap: 7px;
+    margin-top: 12px;
+}
+
+.small-button {
+    flex: 1;
+
+    padding: 8px 6px;
+
+    border: 1px solid #d5d5d5;
+    border-radius: 7px;
+
+    background: white;
+    color: #333333;
+
+    font-size: 11px;
 
     cursor: pointer;
 }
 
+.small-button:active {
+    transform: scale(0.97);
+}
 
-.add-button:active {
 
-    transform: scale(0.98);
+/* =========================
+   スワイプ案内
+========================= */
+
+.swipe-hint {
+    text-align: center;
+    margin: 8px 0 20px;
+
+    color: #888888;
+    font-size: 11px;
 }
 
 
@@ -793,6 +857,7 @@ body {
 
 
 .modal input,
+.modal select,
 .modal textarea {
 
     width: 100%;
@@ -875,4 +940,40 @@ body {
             0 5px 30px rgba(0, 0, 0, 0.1);
     }
 
+}
+
+
+/* =========================
+   新しい応募を登録ボタン
+========================= */
+
+#addGroupButton {
+    display: block;
+    width: calc(100% - 30px);
+    margin: 20px 15px;
+
+    padding: 14px 20px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #1976d2;
+    color: white;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    text-align: center;
+
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+#addGroupButton:hover {
+    background: #1565c0;
+}
+
+#addGroupButton:active {
+    transform: scale(0.98);
 }

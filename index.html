@@ -1,228 +1,271 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>抽選管理</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#1675e5">
+
+    <title>抽選・応募管理</title>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-    <div class="app">
+<div class="app">
 
-        <!-- 横スクロールするメイン領域 -->
-        <div class="page-container" id="pageContainer">
+    <!-- ==========================================
+         メイン画面・カレンダー画面
+    =========================================== -->
+    <div class="page-container" id="pageContainer">
 
-            <!-- ========================= -->
-            <!-- メイン画面 -->
-            <!-- ========================= -->
-            <section class="page main-page">
+        <!-- ======================================
+             メイン画面
+        ======================================= -->
+        <section class="page main-page">
 
-                <header class="header">
-                    <h1>抽選管理</h1>
+            <header class="header">
 
-                    <button class="setting-button">
-                        ⚙
-                    </button>
-                </header>
+                <h1>抽選・応募管理</h1>
 
-                <!-- ステータス -->
-                <div class="status-area">
-
-                    <div class="status-card blue">
-                        <span>参加予定</span>
-                        <strong id="plannedCount">8</strong>
-                        <small>件</small>
-                    </div>
-
-                    <div class="status-card green">
-                        <span>応募中</span>
-                        <strong id="applyingCount">3</strong>
-                        <small>件</small>
-                    </div>
-
-                    <div class="status-card orange">
-                        <span>結果待ち</span>
-                        <strong id="waitingCount">4</strong>
-                        <small>件</small>
-                    </div>
-
-                    <div class="status-card pink">
-                        <span>当選</span>
-                        <strong id="winningCount">1</strong>
-                        <small>件</small>
-                    </div>
-
-                </div>
-
-
-                <!-- 直近の抽選 -->
-                <div class="section-header">
-                    <h2>直近の抽選</h2>
-
-                    <button>
-                        すべて見る ＞
-                    </button>
-                </div>
-
-                <div id="lotteryList" class="lottery-list">
-
-                    <!-- JavaScriptで生成 -->
-
-                </div>
-
-
-                <!-- 新規登録 -->
-                <button class="add-button" id="addLotteryButton">
-                    ＋ 新しい抽選を登録
+                <button class="setting-button">
+                    ⚙
                 </button>
 
-            </section>
+            </header>
 
 
-            <!-- ========================= -->
-            <!-- カレンダー画面 -->
-            <!-- ========================= -->
-            <section class="page calendar-page">
+            <!-- ステータス -->
+            <div class="status-area">
 
-                <header class="header">
+                <div class="status-card blue">
+                    <span>応募予定</span>
+                    <strong id="plannedCount">0</strong>
+                    <small>件</small>
+                </div>
 
-                    <button
-                        class="calendar-home-button"
-                        id="homeButton">
-                        🏠
+                <div class="status-card green">
+                    <span>応募中</span>
+                    <strong id="applyingCount">0</strong>
+                    <small>件</small>
+                </div>
+
+                <div class="status-card orange">
+                    <span>結果待ち</span>
+                    <strong id="waitingCount">0</strong>
+                    <small>件</small>
+                </div>
+
+                <div class="status-card pink">
+                    <span>当選</span>
+                    <strong id="winningCount">0</strong>
+                    <small>件</small>
+                </div>
+
+            </div>
+
+
+            <!-- 最近の応募 -->
+            <div class="section-header">
+
+                <h2>
+                    最近の応募イベント
+                </h2>
+
+                <button id="showAllButton">
+                    すべて見る ＞
+                </button>
+
+            </div>
+
+
+            <div id="groupList"
+                 class="group-list">
+            </div>
+
+
+            <!-- 新規登録 -->
+            <button
+                class="add-button"
+                id="addGroupButton">
+
+                ＋ 新しい応募を登録
+
+            </button>
+
+
+            <div class="swipe-hint">
+
+                ← 左へスワイプするとカレンダー →
+
+            </div>
+
+        </section>
+
+
+        <!-- ======================================
+             カレンダー
+        ======================================= -->
+        <section class="page calendar-page">
+
+            <header class="header">
+
+                <button
+                    class="calendar-home-button"
+                    id="homeButton">
+
+                    ⌂
+
+                </button>
+
+                <h1>
+                    ▣ カレンダー
+                </h1>
+
+                <button
+                    class="today-button"
+                    id="todayButton">
+
+                    今日
+
+                </button>
+
+            </header>
+
+
+            <!-- カレンダー -->
+            <div class="calendar">
+
+                <div class="calendar-navigation">
+
+                    <button id="prevMonth">
+                        ‹
                     </button>
 
-                    <h1>▣ カレンダー</h1>
+                    <h2 id="calendarTitle"></h2>
 
-                    <button class="today-button" id="todayButton">
-                        今日
+                    <button id="nextMonth">
+                        ›
                     </button>
-
-                </header>
-
-
-                <!-- カレンダー -->
-                <div class="calendar">
-
-                    <div class="calendar-navigation">
-
-                        <button id="prevMonth">
-                            ‹
-                        </button>
-
-                        <h2 id="calendarTitle">
-                            2026年6月
-                        </h2>
-
-                        <button id="nextMonth">
-                            ›
-                        </button>
-
-                    </div>
-
-
-                    <div class="weekdays">
-                        <div>日</div>
-                        <div>月</div>
-                        <div>火</div>
-                        <div>水</div>
-                        <div>木</div>
-                        <div>金</div>
-                        <div>土</div>
-                    </div>
-
-
-                    <div
-                        class="calendar-grid"
-                        id="calendarGrid">
-                    </div>
 
                 </div>
 
 
-                <!-- 選択日の予定 -->
-                <div class="schedule-area">
+                <!-- 曜日 -->
+                <div class="weekdays">
 
-                    <h2 id="selectedDateTitle">
-                        6月18日（木）の予定
-                    </h2>
-
-                    <div id="scheduleList">
-                    </div>
+                    <div>日</div>
+                    <div>月</div>
+                    <div>火</div>
+                    <div>水</div>
+                    <div>木</div>
+                    <div>金</div>
+                    <div>土</div>
 
                 </div>
 
-            </section>
 
-        </div>
+                <!-- 日付 -->
+                <div
+                    class="calendar-grid"
+                    id="calendarGrid">
+                </div>
 
-
-        <!-- ========================= -->
-        <!-- 下部ナビゲーション -->
-        <!-- ========================= -->
-
-        <nav class="bottom-nav">
-
-            <button
-                class="nav-button active"
-                data-page="0">
-
-                <span>⌂</span>
-                <small>ホーム</small>
-
-            </button>
+            </div>
 
 
-            <button
-                class="nav-button"
-                data-page="1">
+            <!-- 選択日の予定 -->
+            <div class="schedule-area">
 
-                <span>▣</span>
-                <small>カレンダー</small>
+                <h2 id="selectedDateTitle">
+                </h2>
 
-            </button>
+                <div id="scheduleList">
+                </div>
 
-
-            <button class="nav-button">
-
-                <span>⌕</span>
-                <small>検索</small>
-
-            </button>
+            </div>
 
 
-            <button class="nav-button">
+            <div class="swipe-hint">
 
-                <span>☆</span>
-                <small>お気に入り</small>
+                ← 右へスワイプするとメイン画面 →
 
-            </button>
+            </div>
 
-        </nav>
+        </section>
 
     </div>
 
 
-    <!-- ========================= -->
-    <!-- 新規登録モーダル -->
-    <!-- ========================= -->
+    <!-- ==========================================
+         下部ナビ
+    =========================================== -->
+
+    <nav class="bottom-nav">
+
+        <button
+            class="nav-button active"
+            data-page="0">
+
+            <span>⌂</span>
+            <small>ホーム</small>
+
+        </button>
+
+
+        <button
+            class="nav-button"
+            data-page="1">
+
+            <span>▣</span>
+            <small>カレンダー</small>
+
+        </button>
+
+
+        <button
+            class="nav-button"
+            id="searchButton">
+
+            <span>⌕</span>
+            <small>検索</small>
+
+        </button>
+
+
+        <button
+            class="nav-button"
+            id="favoriteButton">
+
+            <span>☆</span>
+            <small>お気に入り</small>
+
+        </button>
+
+    </nav>
+
+
+    <!-- ==========================================
+         キャンペーングループ登録
+    =========================================== -->
 
     <div
         class="modal-background"
-        id="modalBackground">
+        id="groupModalBackground">
 
         <div class="modal">
 
             <div class="modal-header">
 
-                <h2>新しい抽選を登録</h2>
+                <h2>
+                    新しい応募グループ
+                </h2>
 
-                <button id="closeModal">
+                <button id="closeGroupModal">
                     ×
                 </button>
 
@@ -230,53 +273,26 @@
 
 
             <label>
-                抽選名
+
+                キャンペーン名
+
                 <input
                     type="text"
-                    id="lotteryName"
-                    placeholder="例）○○家電プレゼントキャンペーン">
+                    id="groupName"
+                    placeholder="例）○○ライブ チケット">
+
             </label>
 
 
             <label>
-                応募開始日
-                <input
-                    type="date"
-                    id="startDate">
-            </label>
 
-
-            <label>
-                応募終了日
-                <input
-                    type="date"
-                    id="endDate">
-            </label>
-
-
-            <label>
-                結果発表日
-                <input
-                    type="date"
-                    id="resultDate">
-            </label>
-
-
-            <label>
-                URL
-                <input
-                    type="url"
-                    id="lotteryUrl"
-                    placeholder="https://example.com">
-            </label>
-
-
-            <label>
                 メモ
+
                 <textarea
-                    id="lotteryMemo"
-                    placeholder="メモを入力">
+                    id="groupMemo"
+                    placeholder="キャンペーン全体のメモ">
                 </textarea>
+
             </label>
 
 
@@ -284,14 +300,19 @@
 
                 <button
                     class="cancel-button"
-                    id="cancelButton">
+                    id="cancelGroupButton">
+
                     キャンセル
+
                 </button>
+
 
                 <button
                     class="save-button"
-                    id="saveButton">
-                    保存
+                    id="saveGroupButton">
+
+                    保存して応募枠を追加
+
                 </button>
 
             </div>
@@ -301,7 +322,295 @@
     </div>
 
 
-    <script src="js/app.js"></script>
+    <!-- ==========================================
+         応募枠登録
+    =========================================== -->
+
+    <div
+        class="modal-background"
+        id="entryModalBackground">
+
+        <div class="modal">
+
+            <div class="modal-header">
+
+                <h2 id="entryModalTitle">
+                    応募枠を登録
+                </h2>
+
+                <button id="closeEntryModal">
+                    ×
+                </button>
+
+            </div>
+
+
+            <div
+                class="parent-group-name"
+                id="parentGroupName">
+            </div>
+
+
+            <!-- 応募枠名 -->
+
+            <label>
+
+                応募枠名
+
+                <input
+                    type="text"
+                    id="entryName"
+                    placeholder="例）第1回 / FC先行 / 一般販売">
+
+            </label>
+
+
+            <!-- 応募方式 -->
+
+            <label>
+
+                応募方式
+
+                <select id="entryMethod">
+
+                    <option value="lottery">
+                        抽選
+                    </option>
+
+                    <option value="first-come">
+                        先着
+                    </option>
+
+                    <option value="other">
+                        その他
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <!-- ステータス -->
+
+            <label>
+
+                ステータス
+
+                <select id="entryStatus">
+
+                    <option value="planned">
+                        応募予定
+                    </option>
+
+                    <option value="applying">
+                        応募中
+                    </option>
+
+                    <option value="waiting">
+                        結果待ち
+                    </option>
+
+                    <option value="won">
+                        当選
+                    </option>
+
+                    <option value="lost">
+                        落選
+                    </option>
+
+                    <option value="completed">
+                        参加済み
+                    </option>
+
+                    <option value="cancelled">
+                        キャンセル
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <!-- 開始 -->
+
+            <label>
+
+                開始日時
+
+                <input
+                    type="datetime-local"
+                    id="entryStart">
+
+            </label>
+
+
+            <!-- 終了 -->
+
+            <label>
+
+                終了日時
+
+                <input
+                    type="datetime-local"
+                    id="entryEnd">
+
+            </label>
+
+
+            <!-- 結果発表 -->
+
+            <label>
+
+                結果発表日時（任意）
+
+                <input
+                    type="datetime-local"
+                    id="entryResult">
+
+            </label>
+
+
+            <!-- URL -->
+
+            <label>
+
+                URL
+
+                <input
+                    type="url"
+                    id="entryUrl"
+                    placeholder="https://example.com">
+
+            </label>
+
+
+            <!-- メモ -->
+
+            <label>
+
+                メモ
+
+                <textarea
+                    id="entryMemo"
+                    placeholder="この応募枠のメモ">
+                </textarea>
+
+            </label>
+
+
+            <div class="modal-buttons">
+
+                <button
+                    class="cancel-button"
+                    id="cancelEntryButton">
+
+                    キャンセル
+
+                </button>
+
+
+                <button
+                    class="save-button"
+                    id="saveEntryButton">
+
+                    保存
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         詳細画面
+    =========================================== -->
+
+    <div
+        class="modal-background"
+        id="detailModalBackground">
+
+        <div class="modal">
+
+            <div class="modal-header">
+
+                <h2>
+                    応募グループ詳細
+                </h2>
+
+                <button id="closeDetailModal">
+                    ×
+                </button>
+
+            </div>
+
+
+            <div id="detailContent">
+            </div>
+
+
+            <div class="detail-buttons">
+
+                <button
+                    class="save-button"
+                    id="addRelatedEntryButton">
+
+                    ＋ 関連する応募枠を追加
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         検索
+    =========================================== -->
+
+    <div
+        class="modal-background"
+        id="searchModalBackground">
+
+        <div class="modal">
+
+            <div class="modal-header">
+
+                <h2>
+                    検索
+                </h2>
+
+                <button id="closeSearchModal">
+                    ×
+                </button>
+
+            </div>
+
+
+            <input
+                type="search"
+                id="searchInput"
+                placeholder="キャンペーン名・応募枠名で検索">
+
+
+            <div
+                id="searchResultList"
+                class="search-results">
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="js/app.js"></script>
 
 </body>
+
 </html>

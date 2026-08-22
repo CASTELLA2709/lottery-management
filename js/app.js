@@ -1,503 +1,1932 @@
-// ========================================
-// 抽選データ
-// ========================================
-
-let lotteries = [
-    {
-        name: "○○家電プレゼントキャンペーン",
-        status: "applying",
-        startDate: "2026-06-20",
-        endDate: "2026-06-10",
-        resultDate: "2026-06-20"
-    },
-
-    {
-        name: "△△ポイント還元キャンペーン",
-        status: "waiting",
-        startDate: "2026-05-15",
-        endDate: "2026-06-05",
-        resultDate: "2026-06-15"
-    },
-
-    {
-        name: "□□新商品発売記念キャンペーン",
-        status: "planned",
-        startDate: "2026-06-01",
-        endDate: "2026-06-30",
-        resultDate: "2026-07-10"
-    },
-
-    {
-        name: "☆☆ギフトカードプレゼント",
-        status: "winning",
-        startDate: "2026-04-10",
-        endDate: "2026-04-30",
-        resultDate: "2026-05-10"
-    }
-];
+// ============================================================
+// 抽選・応募管理アプリ
+//
+// ・キャンペーン
+//      └ 応募枠を何件でも登録
+//
+// ・抽選
+// ・先着
+// ・その他
+//
+// ・1次 → 2次 → 3次・・・
+// ・FC先行 → 一般販売
+// ・敗者復活
+// ・追加受付
+//
+// などを自由に管理できます。
+// ============================================================
 
 
-// ========================================
-// DOM取得
-// ========================================
+const STORAGE_KEY = "lotteryAppDataV1";
+
+
+/* ============================================================
+   アプリデータ
+============================================================ */
+
+let data = {
+
+    groups: [
+
+        {
+            id: createId(),
+
+            name: "○○ライブ チケット",
+
+            memo:
+                "複数の先行・販売をまとめて管理",
+
+            favorite: false,
+
+            entries: [
+
+                {
+                    id: createId(),
+
+                    name: "FC先行",
+
+                    method: "lottery",
+
+                    status: "lost",
+
+                    start: "2026-06-01T10:00",
+
+                    end: "2026-06-10T23:59",
+
+                    result: "2026-06-15T18:00",
+
+                    url: "",
+
+                    memo: ""
+                },
+
+
+                {
+                    id: createId(),
+
+                    name: "プレリク先行",
+
+                    method: "lottery",
+
+                    status: "waiting",
+
+                    start: "2026-06-16T10:00",
+
+                    end: "2026-06-20T23:59",
+
+                    result: "2026-06-25T18:00",
+
+                    url: "",
+
+                    memo: ""
+                },
+
+
+                {
+                    id: createId(),
+
+                    name: "一般販売",
+
+                    method: "first-come",
+
+                    status: "planned",
+
+                    start: "2026-06-28T10:00",
+
+                    end: "",
+
+                    result: "",
+
+                    url: "",
+
+                    memo:
+                        "売り切れ次第終了"
+                }
+
+            ]
+        }
+
+    ]
+};
+
+
+/* ============================================================
+   現在選択中の情報
+============================================================ */
+
+let currentGroupId = null;
+
+let editingEntryId = null;
+
+let currentDate = new Date();
+
+let selectedDate = new Date();
+
+
+/* ============================================================
+   DOM
+============================================================ */
 
 const pageContainer =
-    document.getElementById("pageContainer");
-
-const lotteryList =
-    document.getElementById("lotteryList");
-
-const addLotteryButton =
-    document.getElementById("addLotteryButton");
-
-const modalBackground =
-    document.getElementById("modalBackground");
-
-const closeModal =
-    document.getElementById("closeModal");
-
-const cancelButton =
-    document.getElementById("cancelButton");
-
-const saveButton =
-    document.getElementById("saveButton");
-
-const homeButton =
-    document.getElementById("homeButton");
-
-const navButtons =
-    document.querySelectorAll(".nav-button");
+    document.getElementById(
+        "pageContainer"
+    );
 
 
-// ========================================
-// LocalStorageから読み込み
-// ========================================
+const groupList =
+    document.getElementById(
+        "groupList"
+    );
 
-function loadLotteries() {
+
+const groupModalBackground =
+    document.getElementById(
+        "groupModalBackground"
+    );
+
+
+const entryModalBackground =
+    document.getElementById(
+        "entryModalBackground"
+    );
+
+
+const detailModalBackground =
+    document.getElementById(
+        "detailModalBackground"
+    );
+
+
+const searchModalBackground =
+    document.getElementById(
+        "searchModalBackground"
+    );
+
+
+/* ============================================================
+   初期処理
+============================================================ */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        loadData();
+
+        renderGroups();
+
+        renderCalendar();
+
+        renderSchedule(
+            selectedDate
+        );
+
+        updateCounts();
+
+        setupEvents();
+
+    }
+);
+
+
+/* ============================================================
+   ID生成
+============================================================ */
+
+function createId() {
+
+    return (
+        Date.now().toString(36)
+        +
+        Math.random()
+            .toString(36)
+            .substring(2, 8)
+    );
+
+}
+
+
+/* ============================================================
+   LocalStorage
+============================================================ */
+
+function loadData() {
 
     const saved =
-        localStorage.getItem("lotteries");
+        localStorage.getItem(
+            STORAGE_KEY
+        );
 
-    if (saved) {
 
-        lotteries =
-            JSON.parse(saved);
+    if (!saved) {
+
+        saveData();
+
+        return;
     }
+
+
+    try {
+
+        data =
+            JSON.parse(saved);
+
+    } catch (error) {
+
+        console.error(
+            "データ読み込み失敗",
+            error
+        );
+
+    }
+
 }
 
 
-// ========================================
-// LocalStorageへ保存
-// ========================================
-
-function saveLotteries() {
+function saveData() {
 
     localStorage.setItem(
-        "lotteries",
-        JSON.stringify(lotteries)
+        STORAGE_KEY,
+        JSON.stringify(data)
     );
+
 }
 
 
-// ========================================
-// ステータス名
-// ========================================
+/* ============================================================
+   画面切り替え
+============================================================ */
 
-function getStatusName(status) {
-
-    switch (status) {
-
-        case "applying":
-            return "応募中";
-
-        case "waiting":
-            return "結果待ち";
-
-        case "planned":
-            return "参加予定";
-
-        case "winning":
-            return "当選";
-
-        default:
-            return "";
-    }
-}
-
-
-// ========================================
-// 抽選一覧表示
-// ========================================
-
-function renderLotteryList() {
-
-    lotteryList.innerHTML = "";
-
-    lotteries.forEach(lottery => {
-
-        const item =
-            document.createElement("div");
-
-        item.className =
-            "lottery-item";
-
-        item.innerHTML = `
-
-            <div class="lottery-top">
-
-                <span class="status-label ${lottery.status}">
-                    ${getStatusName(lottery.status)}
-                </span>
-
-                <span class="lottery-name">
-                    ${lottery.name}
-                </span>
-
-            </div>
-
-            <div class="lottery-date">
-                応募期間：
-                ${lottery.startDate}
-                ～ ${lottery.endDate}
-            </div>
-
-            <div class="lottery-date">
-                結果発表：
-                ${lottery.resultDate}
-            </div>
-
-            <span class="arrow">
-                ›
-            </span>
-        `;
-
-        lotteryList.appendChild(item);
-    });
-
-
-    updateStatusCount();
-}
-
-
-// ========================================
-// ステータス件数
-// ========================================
-
-function updateStatusCount() {
-
-    const planned =
-        lotteries.filter(
-            x => x.status === "planned"
-        ).length;
-
-    const applying =
-        lotteries.filter(
-            x => x.status === "applying"
-        ).length;
-
-    const waiting =
-        lotteries.filter(
-            x => x.status === "waiting"
-        ).length;
-
-    const winning =
-        lotteries.filter(
-            x => x.status === "winning"
-        ).length;
-
-
-    document.getElementById(
-        "plannedCount"
-    ).textContent = planned;
-
-    document.getElementById(
-        "applyingCount"
-    ).textContent = applying;
-
-    document.getElementById(
-        "waitingCount"
-    ).textContent = waiting;
-
-    document.getElementById(
-        "winningCount"
-    ).textContent = winning;
-}
-
-
-// ========================================
-// ページ切り替え
-// ========================================
-
-function goToPage(pageIndex) {
-
-    const width =
-        pageContainer.clientWidth;
+function goToPage(index) {
 
     pageContainer.scrollTo({
 
-        left: width * pageIndex,
+        left:
+            pageContainer.clientWidth
+            * index,
 
         behavior: "smooth"
+
     });
 
 
-    updateNavigation(pageIndex);
+    updateNavigation(index);
+
 }
 
 
-// ========================================
-// 下部ナビの状態変更
-// ========================================
+function updateNavigation(index) {
 
-function updateNavigation(pageIndex) {
+    document
+        .querySelectorAll(
+            ".nav-button"
+        )
+        .forEach(
+            button => {
 
-    navButtons.forEach(
-        button => button.classList.remove("active")
-    );
+                button.classList.remove(
+                    "active"
+                );
+
+            }
+        );
 
 
-    if (pageIndex === 0) {
+    const button =
+        document.querySelector(
+            `.nav-button[data-page="${index}"]`
+        );
 
-        navButtons[0]
-            .classList.add("active");
 
-    } else if (pageIndex === 1) {
+    if (button) {
 
-        navButtons[1]
-            .classList.add("active");
+        button.classList.add(
+            "active"
+        );
+
     }
+
 }
 
 
-// ========================================
-// 横スクロール位置を監視
-// ========================================
+/* ============================================================
+   横スクロール検知
+============================================================ */
 
 pageContainer.addEventListener(
     "scroll",
-    () => {
+    function () {
 
-        const pageWidth =
+        const width =
             pageContainer.clientWidth;
 
-        const currentPage =
-            Math.round(
-                pageContainer.scrollLeft /
-                pageWidth
-            );
 
-        updateNavigation(currentPage);
-    }
-);
-
-
-// ========================================
-// ナビゲーション
-// ========================================
-
-navButtons.forEach(
-    (button, index) => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                if (index === 0) {
-
-                    goToPage(0);
-
-                } else if (index === 1) {
-
-                    goToPage(1);
-                }
-            }
-        );
-    }
-);
-
-
-// ========================================
-// カレンダーからホームへ
-// ========================================
-
-homeButton.addEventListener(
-    "click",
-    () => {
-
-        goToPage(0);
-    }
-);
-
-
-// ========================================
-// モーダル表示
-// ========================================
-
-addLotteryButton.addEventListener(
-    "click",
-    () => {
-
-        modalBackground.classList.add(
-            "show"
-        );
-    }
-);
-
-
-// ========================================
-// モーダル閉じる
-// ========================================
-
-closeModal.addEventListener(
-    "click",
-    closeModalWindow
-);
-
-
-cancelButton.addEventListener(
-    "click",
-    closeModalWindow
-);
-
-
-function closeModalWindow() {
-
-    modalBackground.classList.remove(
-        "show"
-    );
-}
-
-
-// ========================================
-// 抽選登録
-// ========================================
-
-saveButton.addEventListener(
-    "click",
-    () => {
-
-        const name =
-            document.getElementById(
-                "lotteryName"
-            ).value;
-
-        const startDate =
-            document.getElementById(
-                "startDate"
-            ).value;
-
-        const endDate =
-            document.getElementById(
-                "endDate"
-            ).value;
-
-        const resultDate =
-            document.getElementById(
-                "resultDate"
-            ).value;
-
-        const url =
-            document.getElementById(
-                "lotteryUrl"
-            ).value;
-
-        const memo =
-            document.getElementById(
-                "lotteryMemo"
-            ).value;
-
-
-        if (!name) {
-
-            alert("抽選名を入力してください");
+        if (!width) {
 
             return;
         }
 
 
-        const newLottery = {
-
-            name: name,
-
-            status: "planned",
-
-            startDate: startDate,
-
-            endDate: endDate,
-
-            resultDate: resultDate,
-
-            url: url,
-
-            memo: memo
-        };
+        const index =
+            Math.round(
+                pageContainer.scrollLeft
+                / width
+            );
 
 
-        lotteries.push(
-            newLottery
-        );
+        updateNavigation(index);
 
-
-        saveLotteries();
-
-        renderLotteryList();
-
-        renderCalendar();
-
-
-        closeModalWindow();
-
-
-        document.getElementById(
-            "lotteryName"
-        ).value = "";
-
-        document.getElementById(
-            "startDate"
-        ).value = "";
-
-        document.getElementById(
-            "endDate"
-        ).value = "";
-
-        document.getElementById(
-            "resultDate"
-        ).value = "";
-
-        document.getElementById(
-            "lotteryUrl"
-        ).value = "";
-
-        document.getElementById(
-            "lotteryMemo"
-        ).value = "";
     }
 );
 
 
-// ========================================
-// カレンダー
-// ========================================
+/* ============================================================
+   イベント
+============================================================ */
 
-let currentDate =
-    new Date();
+function setupEvents() {
 
-let selectedDate =
-    new Date();
 
+    /* ホーム / カレンダー */
+
+    document
+        .querySelectorAll(
+            ".nav-button[data-page]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        goToPage(
+                            Number(
+                                button.dataset.page
+                            )
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+    /* ホーム */
+
+    document
+        .getElementById(
+            "homeButton"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                goToPage(0);
+
+            }
+        );
+
+
+    /* 新規グループ */
+
+    document
+        .getElementById(
+            "addGroupButton"
+        )
+        .addEventListener(
+            "click",
+            openGroupModal
+        );
+
+
+    /* グループモーダル */
+
+    document
+        .getElementById(
+            "closeGroupModal"
+        )
+        .addEventListener(
+            "click",
+            closeAllModals
+        );
+
+
+    document
+        .getElementById(
+            "cancelGroupButton"
+        )
+        .addEventListener(
+            "click",
+            closeAllModals
+        );
+
+
+    document
+        .getElementById(
+            "saveGroupButton"
+        )
+        .addEventListener(
+            "click",
+            saveGroup
+        );
+
+
+    /* 応募枠モーダル */
+
+    document
+        .getElementById(
+            "closeEntryModal"
+        )
+        .addEventListener(
+            "click",
+            closeAllModals
+        );
+
+
+    document
+        .getElementById(
+            "cancelEntryButton"
+        )
+        .addEventListener(
+            "click",
+            closeAllModals
+        );
+
+
+    document
+        .getElementById(
+            "saveEntryButton"
+        )
+        .addEventListener(
+            "click",
+            saveEntry
+        );
+
+
+    /* 詳細 */
+
+    document
+        .getElementById(
+            "closeDetailModal"
+        )
+        .addEventListener(
+            "click",
+            closeAllModals
+        );
+
+
+    document
+        .getElementById(
+            "addRelatedEntryButton"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                if (currentGroupId) {
+
+                    openEntryModal(
+                        currentGroupId
+                    );
+
+                }
+
+            }
+        );
+
+
+    /* カレンダー */
+
+    document
+        .getElementById(
+            "prevMonth"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                currentDate.setMonth(
+                    currentDate.getMonth() - 1
+                );
+
+                renderCalendar();
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "nextMonth"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                currentDate.setMonth(
+                    currentDate.getMonth() + 1
+                );
+
+                renderCalendar();
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "todayButton"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                currentDate =
+                    new Date();
+
+                selectedDate =
+                    new Date();
+
+                renderCalendar();
+
+                renderSchedule(
+                    selectedDate
+                );
+
+            }
+        );
+
+
+    /* すべて表示 */
+
+    document
+        .getElementById(
+            "showAllButton"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                renderGroups(true);
+
+            }
+        );
+
+
+    /* 検索 */
+
+    document
+        .getElementById(
+            "searchButton"
+        )
+        .addEventListener(
+            "click",
+            openSearch
+        );
+
+
+    document
+        .getElementById(
+            "closeSearchModal"
+        )
+        .addEventListener(
+            "click",
+            closeAllModals
+        );
+
+
+    document
+        .getElementById(
+            "searchInput"
+        )
+        .addEventListener(
+            "input",
+            renderSearchResults
+        );
+
+
+    /* お気に入り */
+
+    document
+        .getElementById(
+            "favoriteButton"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                renderGroups(
+                    true,
+                    true
+                );
+
+                goToPage(0);
+
+            }
+        );
+
+}
+
+
+/* ============================================================
+   ラベル
+============================================================ */
+
+const STATUS_LABELS = {
+
+    planned: "応募予定",
+
+    applying: "応募中",
+
+    waiting: "結果待ち",
+
+    won: "当選",
+
+    lost: "落選",
+
+    completed: "参加済み",
+
+    cancelled: "キャンセル"
+
+};
+
+
+const METHOD_LABELS = {
+
+    lottery: "抽選",
+
+    "first-come": "先着",
+
+    other: "その他"
+
+};
+
+
+function getStatusLabel(status) {
+
+    return (
+        STATUS_LABELS[status]
+        || status
+    );
+
+}
+
+
+function getMethodLabel(method) {
+
+    return (
+        METHOD_LABELS[method]
+        || method
+    );
+
+}
+
+
+/* ============================================================
+   件数
+============================================================ */
+
+function updateCounts() {
+
+    const entries =
+        data.groups.flatMap(
+            group => group.entries
+        );
+
+
+    document
+        .getElementById(
+            "plannedCount"
+        )
+        .textContent =
+        entries.filter(
+            entry =>
+                entry.status === "planned"
+        ).length;
+
+
+    document
+        .getElementById(
+            "applyingCount"
+        )
+        .textContent =
+        entries.filter(
+            entry =>
+                entry.status === "applying"
+        ).length;
+
+
+    document
+        .getElementById(
+            "waitingCount"
+        )
+        .textContent =
+        entries.filter(
+            entry =>
+                entry.status === "waiting"
+        ).length;
+
+
+    document
+        .getElementById(
+            "winningCount"
+        )
+        .textContent =
+        entries.filter(
+            entry =>
+                entry.status === "won"
+        ).length;
+
+}
+
+
+/* ============================================================
+   メイン画面
+============================================================ */
+
+function renderGroups(
+    showAll = false,
+    favoritesOnly = false
+) {
+
+    groupList.innerHTML = "";
+
+
+    let groups =
+        data.groups;
+
+
+    if (favoritesOnly) {
+
+        groups =
+            groups.filter(
+                group =>
+                    group.favorite
+            );
+
+    }
+
+
+    if (!showAll) {
+
+        groups =
+            groups.slice(0, 10);
+
+    }
+
+
+    if (!groups.length) {
+
+        groupList.innerHTML = `
+            <div class="group-summary">
+                登録されている応募はありません。
+            </div>
+        `;
+
+        return;
+    }
+
+
+    groups.forEach(
+        group => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "group-card";
+
+
+            const methods =
+                [
+                    ...new Set(
+                        group.entries.map(
+                            entry =>
+                                entry.method
+                        )
+                    )
+                ];
+
+
+            const entriesHtml =
+                group.entries
+                    .map(
+                        entry => `
+
+                            <div class="entry-mini">
+
+                                <div
+                                    class="entry-mini-left">
+
+                                    <div
+                                        class="entry-mini-name">
+
+                                        ${escapeHtml(
+                                            entry.name
+                                        )}
+
+                                    </div>
+
+                                    <div
+                                        class="entry-mini-date">
+
+                                        ${getDateRangeText(
+                                            entry
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+
+                                <span
+                                    class="
+                                        entry-mini-status
+                                        status-${entry.status}
+                                    ">
+
+                                    ${getStatusLabel(
+                                        entry.status
+                                    )}
+
+                                </span>
+
+                            </div>
+
+                        `
+                    )
+                    .join("");
+
+
+            card.innerHTML = `
+
+                <div
+                    class="group-card-header">
+
+                    <div>
+
+                        <div
+                            class="group-name">
+
+                            ${escapeHtml(
+                                group.name
+                            )}
+
+                            ${
+                                group.favorite
+                                ? '<span class="favorite">★</span>'
+                                : ""
+                            }
+
+                        </div>
+
+
+                        <div
+                            class="group-summary">
+
+                            応募枠
+                            ${group.entries.length}
+                            件
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="group-badges">
+
+                    ${
+                        methods.map(
+                            method => `
+
+                                <span
+                                    class="
+                                        badge
+                                        ${method}
+                                    ">
+
+                                    ${getMethodLabel(
+                                        method
+                                    )}
+
+                                </span>
+
+                            `
+                        ).join("")
+                    }
+
+                </div>
+
+
+                <div
+                    class="entry-mini-list">
+
+                    ${entriesHtml}
+
+                </div>
+
+
+                <div
+                    class="group-actions">
+
+                    <button
+                        class="small-button detail-button">
+
+                        詳細・履歴
+
+                    </button>
+
+
+                    <button
+                        class="small-button related-button">
+
+                        ＋ 関連応募
+
+                    </button>
+
+
+                    <button
+                        class="small-button favorite-button">
+
+                        ${
+                            group.favorite
+                            ? "お気に入り解除"
+                            : "お気に入り"
+                        }
+
+                    </button>
+
+                </div>
+
+            `;
+
+
+            /* 詳細 */
+
+            card
+                .querySelector(
+                    ".detail-button"
+                )
+                .addEventListener(
+                    "click",
+                    function () {
+
+                        openDetail(
+                            group.id
+                        );
+
+                    }
+                );
+
+
+            /* 関連応募 */
+
+            card
+                .querySelector(
+                    ".related-button"
+                )
+                .addEventListener(
+                    "click",
+                    function () {
+
+                        openEntryModal(
+                            group.id
+                        );
+
+                    }
+                );
+
+
+            /* お気に入り */
+
+            card
+                .querySelector(
+                    ".favorite-button"
+                )
+                .addEventListener(
+                    "click",
+                    function () {
+
+                        group.favorite =
+                            !group.favorite;
+
+                        saveData();
+
+                        renderGroups(
+                            showAll,
+                            favoritesOnly
+                        );
+
+                    }
+                );
+
+
+            groupList.appendChild(
+                card
+            );
+
+        }
+    );
+
+
+    updateCounts();
+
+}
+
+
+/* ============================================================
+   グループ登録画面
+============================================================ */
+
+function openGroupModal() {
+
+    document
+        .getElementById(
+            "groupName"
+        )
+        .value = "";
+
+
+    document
+        .getElementById(
+            "groupMemo"
+        )
+        .value = "";
+
+
+    groupModalBackground
+        .classList.add(
+            "show"
+        );
+
+}
+
+
+function saveGroup() {
+
+    const name =
+        document
+            .getElementById(
+                "groupName"
+            )
+            .value
+            .trim();
+
+
+    const memo =
+        document
+            .getElementById(
+                "groupMemo"
+            )
+            .value
+            .trim();
+
+
+    if (!name) {
+
+        alert(
+            "キャンペーン名を入力してください。"
+        );
+
+        return;
+    }
+
+
+    const group = {
+
+        id: createId(),
+
+        name: name,
+
+        memo: memo,
+
+        favorite: false,
+
+        entries: []
+
+    };
+
+
+    data.groups.push(
+        group
+    );
+
+
+    saveData();
+
+    closeAllModals();
+
+    renderGroups();
+
+
+    /* 登録後すぐ応募枠登録 */
+
+    openEntryModal(
+        group.id
+    );
+
+}
+
+
+/* ============================================================
+   応募枠登録
+============================================================ */
+
+function openEntryModal(
+    groupId,
+    entryId = null
+) {
+
+    currentGroupId =
+        groupId;
+
+    editingEntryId =
+        entryId;
+
+
+    const group =
+        findGroup(
+            groupId
+        );
+
+
+    if (!group) {
+
+        return;
+    }
+
+
+    document
+        .getElementById(
+            "parentGroupName"
+        )
+        .textContent =
+        "関連先：" +
+        group.name;
+
+
+    document
+        .getElementById(
+            "entryModalTitle"
+        )
+        .textContent =
+        entryId
+        ? "応募枠を編集"
+        : "応募枠を登録";
+
+
+    let entry = null;
+
+
+    if (entryId) {
+
+        entry =
+            group.entries.find(
+                x =>
+                    x.id === entryId
+            );
+
+    }
+
+
+    document
+        .getElementById(
+            "entryName"
+        )
+        .value =
+        entry?.name || "";
+
+
+    document
+        .getElementById(
+            "entryMethod"
+        )
+        .value =
+        entry?.method || "lottery";
+
+
+    document
+        .getElementById(
+            "entryStatus"
+        )
+        .value =
+        entry?.status || "planned";
+
+
+    document
+        .getElementById(
+            "entryStart"
+        )
+        .value =
+        entry?.start || "";
+
+
+    document
+        .getElementById(
+            "entryEnd"
+        )
+        .value =
+        entry?.end || "";
+
+
+    document
+        .getElementById(
+            "entryResult"
+        )
+        .value =
+        entry?.result || "";
+
+
+    document
+        .getElementById(
+            "entryUrl"
+        )
+        .value =
+        entry?.url || "";
+
+
+    document
+        .getElementById(
+            "entryMemo"
+        )
+        .value =
+        entry?.memo || "";
+
+
+    entryModalBackground
+        .classList.add(
+            "show"
+        );
+
+}
+
+
+/* ============================================================
+   応募枠保存
+============================================================ */
+
+function saveEntry() {
+
+    const group =
+        findGroup(
+            currentGroupId
+        );
+
+
+    if (!group) {
+
+        return;
+    }
+
+
+    const name =
+        document
+            .getElementById(
+                "entryName"
+            )
+            .value
+            .trim();
+
+
+    if (!name) {
+
+        alert(
+            "応募枠名を入力してください。"
+        );
+
+        return;
+    }
+
+
+    const entry = {
+
+        id:
+            editingEntryId
+            || createId(),
+
+        name: name,
+
+        method:
+            document
+                .getElementById(
+                    "entryMethod"
+                )
+                .value,
+
+        status:
+            document
+                .getElementById(
+                    "entryStatus"
+                )
+                .value,
+
+        start:
+            document
+                .getElementById(
+                    "entryStart"
+                )
+                .value,
+
+        end:
+            document
+                .getElementById(
+                    "entryEnd"
+                )
+                .value,
+
+        result:
+            document
+                .getElementById(
+                    "entryResult"
+                )
+                .value,
+
+        url:
+            document
+                .getElementById(
+                    "entryUrl"
+                )
+                .value
+                .trim(),
+
+        memo:
+            document
+                .getElementById(
+                    "entryMemo"
+                )
+                .value
+                .trim()
+
+    };
+
+
+    if (editingEntryId) {
+
+        const index =
+            group.entries.findIndex(
+                entry =>
+                    entry.id ===
+                    editingEntryId
+            );
+
+
+        if (index >= 0) {
+
+            group.entries[index] =
+                entry;
+
+        }
+
+    } else {
+
+        group.entries.push(
+            entry
+        );
+
+    }
+
+
+    saveData();
+
+    closeAllModals();
+
+    renderGroups();
+
+    renderCalendar();
+
+    renderSchedule(
+        selectedDate
+    );
+
+
+    /* 詳細画面 */
+
+    openDetail(
+        group.id
+    );
+
+}
+
+
+/* ============================================================
+   詳細画面
+============================================================ */
+
+function openDetail(
+    groupId
+) {
+
+    currentGroupId =
+        groupId;
+
+
+    const group =
+        findGroup(
+            groupId
+        );
+
+
+    if (!group) {
+
+        return;
+    }
+
+
+    const content =
+        document.getElementById(
+            "detailContent"
+        );
+
+
+    let html = `
+
+        <div class="group-name">
+
+            ${escapeHtml(
+                group.name
+            )}
+
+        </div>
+
+    `;
+
+
+    if (group.memo) {
+
+        html += `
+
+            <div class="group-summary">
+
+                ${escapeHtml(
+                    group.memo
+                )}
+
+            </div>
+
+        `;
+
+    }
+
+
+    group.entries.forEach(
+        function (
+            entry,
+            index
+        ) {
+
+            html += `
+
+                <div
+                    class="detail-entry">
+
+                    <div
+                        class="detail-entry-title">
+
+                        <span>
+
+                            ${index + 1}.
+                            ${escapeHtml(
+                                entry.name
+                            )}
+
+                        </span>
+
+
+                        <span
+                            class="
+                                entry-mini-status
+                                status-${entry.status}
+                            ">
+
+                            ${getStatusLabel(
+                                entry.status
+                            )}
+
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        class="detail-line">
+
+                        方式：
+                        ${getMethodLabel(
+                            entry.method
+                        )}
+
+                    </div>
+
+
+                    <div
+                        class="detail-line">
+
+                        期間：
+                        ${getDateRangeText(
+                            entry
+                        )}
+
+                    </div>
+
+
+                    ${
+                        entry.result
+                        ? `
+
+                            <div
+                                class="detail-line">
+
+                                結果発表：
+                                ${formatDateTime(
+                                    entry.result
+                                )}
+
+                            </div>
+
+                        `
+                        : ""
+                    }
+
+
+                    ${
+                        entry.memo
+                        ? `
+
+                            <div
+                                class="detail-line">
+
+                                メモ：
+                                ${escapeHtml(
+                                    entry.memo
+                                )}
+
+                            </div>
+
+                        `
+                        : ""
+                    }
+
+
+                    ${
+                        entry.url
+                        ? `
+
+                            <div
+                                class="detail-line">
+
+                                <a
+                                    href="${escapeHtml(entry.url)}"
+                                    target="_blank">
+
+                                    応募ページを開く
+
+                                </a>
+
+                            </div>
+
+                        `
+                        : ""
+                    }
+
+
+                    <div
+                        class="detail-actions">
+
+                        <button
+                            class="small-button"
+                            onclick="
+                                openEntryModal(
+                                    '${group.id}',
+                                    '${entry.id}'
+                                )
+                            ">
+
+                            編集
+
+                        </button>
+
+
+                        <button
+                            class="small-button"
+                            onclick="
+                                deleteEntry(
+                                    '${group.id}',
+                                    '${entry.id}'
+                                )
+                            ">
+
+                            削除
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    if (!group.entries.length) {
+
+        html += `
+
+            <div class="group-summary">
+
+                応募枠はまだありません。
+
+            </div>
+
+        `;
+
+    }
+
+
+    content.innerHTML =
+        html;
+
+
+    detailModalBackground
+        .classList.add(
+            "show"
+        );
+
+}
+
+
+/* ============================================================
+   応募枠削除
+============================================================ */
+
+function deleteEntry(
+    groupId,
+    entryId
+) {
+
+    const group =
+        findGroup(
+            groupId
+        );
+
+
+    if (!group) {
+
+        return;
+    }
+
+
+    const entry =
+        group.entries.find(
+            entry =>
+                entry.id ===
+                entryId
+        );
+
+
+    if (!entry) {
+
+        return;
+    }
+
+
+    if (
+        !confirm(
+            `「${entry.name}」を削除しますか？`
+        )
+    ) {
+
+        return;
+    }
+
+
+    group.entries =
+        group.entries.filter(
+            entry =>
+                entry.id !==
+                entryId
+        );
+
+
+    saveData();
+
+    renderGroups();
+
+    renderCalendar();
+
+    renderSchedule(
+        selectedDate
+    );
+
+
+    openDetail(
+        groupId
+    );
+
+}
+
+
+/* ============================================================
+   検索
+============================================================ */
+
+function openSearch() {
+
+    document
+        .getElementById(
+            "searchInput"
+        )
+        .value = "";
+
+
+    document
+        .getElementById(
+            "searchResultList"
+        )
+        .innerHTML = "";
+
+
+    searchModalBackground
+        .classList.add(
+            "show"
+        );
+
+
+    setTimeout(
+        function () {
+
+            document
+                .getElementById(
+                    "searchInput"
+                )
+                .focus();
+
+        },
+        100
+    );
+
+}
+
+
+function renderSearchResults() {
+
+    const keyword =
+        document
+            .getElementById(
+                "searchInput"
+            )
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    const resultList =
+        document
+            .getElementById(
+                "searchResultList"
+            );
+
+
+    if (!keyword) {
+
+        resultList.innerHTML = "";
+
+        return;
+    }
+
+
+    const results = [];
+
+
+    data.groups.forEach(
+        function (group) {
+
+            group.entries.forEach(
+                function (entry) {
+
+                    const text =
+                        (
+                            group.name
+                            + " "
+                            + entry.name
+                            + " "
+                            + entry.memo
+                        )
+                        .toLowerCase();
+
+
+                    if (
+                        text.includes(
+                            keyword
+                        )
+                    ) {
+
+                        results.push({
+
+                            group,
+                            entry
+
+                        });
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    if (!results.length) {
+
+        resultList.innerHTML = `
+
+            <div class="group-summary">
+
+                該当する応募はありません。
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    resultList.innerHTML =
+        results.map(
+            result => `
+
+                <div
+                    class="search-result">
+
+                    <div
+                        class="search-result-title">
+
+                        ${escapeHtml(
+                            result.group.name
+                        )}
+
+                        /
+
+                        ${escapeHtml(
+                            result.entry.name
+                        )}
+
+                    </div>
+
+
+                    <div
+                        class="search-result-sub">
+
+                        ${getMethodLabel(
+                            result.entry.method
+                        )}
+
+                        ・
+
+                        ${getStatusLabel(
+                            result.entry.status
+                        )}
+
+                    </div>
+
+                </div>
+
+            `
+        ).join("");
+
+}
+
+
+/* ============================================================
+   カレンダー
+============================================================ */
 
 function renderCalendar() {
 
     const year =
         currentDate.getFullYear();
 
+
     const month =
         currentDate.getMonth();
 
 
-    document.getElementById(
-        "calendarTitle"
-    ).textContent =
+    document
+        .getElementById(
+            "calendarTitle"
+        )
+        .textContent =
         `${year}年${month + 1}月`;
 
 
@@ -506,10 +1935,10 @@ function renderCalendar() {
             "calendarGrid"
         );
 
+
     grid.innerHTML = "";
 
 
-    // 月初曜日
     const firstDay =
         new Date(
             year,
@@ -518,7 +1947,6 @@ function renderCalendar() {
         ).getDay();
 
 
-    // 月末日
     const lastDate =
         new Date(
             year,
@@ -527,7 +1955,6 @@ function renderCalendar() {
         ).getDate();
 
 
-    // 前月の日付
     const previousLastDate =
         new Date(
             year,
@@ -536,7 +1963,8 @@ function renderCalendar() {
         ).getDate();
 
 
-    // 前月分
+    /* 前月 */
+
     for (
         let i = firstDay - 1;
         i >= 0;
@@ -546,66 +1974,98 @@ function renderCalendar() {
         const day =
             previousLastDate - i;
 
-        const cell =
-            createCalendarCell(
-                day,
-                true
+
+        const date =
+            new Date(
+                year,
+                month - 1,
+                day
             );
 
-        grid.appendChild(cell);
+
+        grid.appendChild(
+            createCalendarCell(
+                date,
+                true
+            )
+        );
+
     }
 
 
-    // 当月
+    /* 今月 */
+
     for (
         let day = 1;
         day <= lastDate;
         day++
     ) {
 
-        const cell =
-            createCalendarCell(
-                day,
-                false
+        const date =
+            new Date(
+                year,
+                month,
+                day
             );
 
-        grid.appendChild(cell);
+
+        grid.appendChild(
+            createCalendarCell(
+                date,
+                false
+            )
+        );
+
     }
 
 
-    // 次月
-    const remaining =
-        42 - grid.children.length;
+    /* 次月 */
 
-
-    for (
-        let day = 1;
-        day <= remaining;
-        day++
+    while (
+        grid.children.length < 42
     ) {
 
-        const cell =
-            createCalendarCell(
-                day,
-                true
+        const day =
+            grid.children.length
+            - firstDay
+            - lastDate
+            + 1;
+
+
+        const date =
+            new Date(
+                year,
+                month + 1,
+                day
             );
 
-        grid.appendChild(cell);
+
+        grid.appendChild(
+            createCalendarCell(
+                date,
+                true
+            )
+        );
+
     }
+
 }
 
 
-// ========================================
-// カレンダーセル作成
-// ========================================
+/* ============================================================
+   カレンダーの日
+============================================================ */
 
 function createCalendarCell(
-    day,
+    date,
     otherMonth
 ) {
 
     const cell =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     cell.className =
         "calendar-day";
@@ -616,178 +2076,256 @@ function createCalendarCell(
         cell.classList.add(
             "other-month"
         );
+
     }
 
 
-    const year =
-        currentDate.getFullYear();
-
-    const month =
-        currentDate.getMonth();
-
-
-    const date =
-        new Date(
-            year,
-            month,
-            day
+    const number =
+        document.createElement(
+            "span"
         );
 
 
-    const dateString =
-        formatDate(date);
-
-
-    const dayNumber =
-        document.createElement("span");
-
-    dayNumber.className =
+    number.className =
         "day-number";
 
-    dayNumber.textContent =
-        day;
+
+    number.textContent =
+        date.getDate();
 
 
     cell.appendChild(
-        dayNumber
+        number
     );
 
 
-    // 今日
     const today =
         new Date();
 
 
     if (
-        date.getFullYear() === today.getFullYear() &&
-        date.getMonth() === today.getMonth() &&
-        date.getDate() === today.getDate()
+        isSameDate(
+            date,
+            today
+        )
     ) {
 
         cell.classList.add(
             "today"
         );
+
     }
 
 
-    // 抽選イベント
-    lotteries.forEach(
-        lottery => {
+    const dateString =
+        formatDateOnly(
+            date
+        );
 
-            if (
-                lottery.startDate ===
-                dateString
-            ) {
 
-                addEvent(
-                    cell,
-                    "応募開始",
-                    "event-start"
+    const events =
+        getCalendarEvents(
+            dateString
+        );
+
+
+    events
+        .slice(0, 3)
+        .forEach(
+            event => {
+
+                const element =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                element.className =
+                    "calendar-event "
+                    + event.className;
+
+
+                element.textContent =
+                    event.text;
+
+
+                element.title =
+                    event.text;
+
+
+                cell.appendChild(
+                    element
                 );
+
             }
+        );
 
 
-            if (
-                lottery.endDate ===
-                dateString
-            ) {
+    if (
+        events.length > 3
+    ) {
 
-                addEvent(
-                    cell,
-                    "締切",
-                    "event-deadline"
-                );
-            }
+        const more =
+            document.createElement(
+                "div"
+            );
 
 
-            if (
-                lottery.resultDate ===
-                dateString
-            ) {
-
-                addEvent(
-                    cell,
-                    "結果発表",
-                    "event-result"
-                );
-            }
-        }
-    );
+        more.className =
+            "calendar-event";
 
 
-    // 日付タップ
+        more.textContent =
+            `＋${events.length - 3}件`;
+
+
+        cell.appendChild(
+            more
+        );
+
+    }
+
+
     cell.addEventListener(
         "click",
-        () => {
+        function () {
 
             selectedDate =
                 date;
 
+
             renderSchedule(
                 date
             );
+
         }
     );
 
 
     return cell;
+
 }
 
 
-// ========================================
-// カレンダーイベント
-// ========================================
+/* ============================================================
+   カレンダーイベント
+============================================================ */
 
-function addEvent(
-    cell,
-    text,
-    className
+function getCalendarEvents(
+    dateString
 ) {
 
-    const event =
-        document.createElement("div");
+    const events = [];
 
-    event.className =
-        `calendar-event ${className}`;
 
-    event.textContent =
-        text;
+    data.groups.forEach(
+        function (group) {
 
-    cell.appendChild(
-        event
+            group.entries.forEach(
+                function (entry) {
+
+
+                    /* 応募開始 */
+
+                    if (
+                        entry.start
+                        &&
+                        entry.start.startsWith(
+                            dateString
+                        )
+                    ) {
+
+                        events.push({
+
+                            text:
+                                group.name
+                                +
+                                (
+                                    entry.method
+                                    ===
+                                    "first-come"
+
+                                    ? " 先着開始"
+
+                                    : " 応募開始"
+                                ),
+
+                            className:
+                                "event-start"
+
+                        });
+
+                    }
+
+
+                    /* 締切 */
+
+                    if (
+                        entry.end
+                        &&
+                        entry.end.startsWith(
+                            dateString
+                        )
+                    ) {
+
+                        events.push({
+
+                            text:
+                                group.name
+                                +
+                                " 締切",
+
+                            className:
+                                "event-deadline"
+
+                        });
+
+                    }
+
+
+                    /* 結果発表 */
+
+                    if (
+                        entry.result
+                        &&
+                        entry.result.startsWith(
+                            dateString
+                        )
+                    ) {
+
+                        events.push({
+
+                            text:
+                                group.name
+                                +
+                                " 結果発表",
+
+                            className:
+                                "event-result"
+
+                        });
+
+                    }
+
+                }
+            );
+
+        }
     );
+
+
+    return events;
+
 }
 
 
-// ========================================
-// 日付フォーマット
-// ========================================
+/* ============================================================
+   選択日の予定
+============================================================ */
 
-function formatDate(date) {
-
-    const year =
-        date.getFullYear();
-
-    const month =
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0");
-
-    const day =
-        String(
-            date.getDate()
-        ).padStart(2, "0");
-
-
-    return `${year}-${month}-${day}`;
-}
-
-
-// ========================================
-// 選択日の予定
-// ========================================
-
-function renderSchedule(date) {
+function renderSchedule(
+    date
+) {
 
     const title =
         document.getElementById(
@@ -795,27 +2333,19 @@ function renderSchedule(date) {
         );
 
 
-    const month =
-        date.getMonth() + 1;
-
-    const day =
-        date.getDate();
-
-
-    const weekday =
-        [
-            "日",
-            "月",
-            "火",
-            "水",
-            "木",
-            "金",
-            "土"
-        ][date.getDay()];
+    const weekdays = [
+        "日",
+        "月",
+        "火",
+        "水",
+        "木",
+        "金",
+        "土"
+    ];
 
 
     title.textContent =
-        `${month}月${day}日（${weekday}）の予定`;
+        `${date.getMonth() + 1}月${date.getDate()}日（${weekdays[date.getDay()]}）の予定`;
 
 
     const list =
@@ -828,157 +2358,471 @@ function renderSchedule(date) {
 
 
     const targetDate =
-        formatDate(date);
+        formatDateOnly(
+            date
+        );
 
 
-    lotteries.forEach(
-        lottery => {
-
-            let type = "";
-
-            if (
-                lottery.startDate ===
-                targetDate
-            ) {
-
-                type = "応募開始";
-            }
-
-            else if (
-                lottery.endDate ===
-                targetDate
-            ) {
-
-                type = "応募締切";
-            }
-
-            else if (
-                lottery.resultDate ===
-                targetDate
-            ) {
-
-                type = "結果発表";
-            }
+    const schedules = [];
 
 
-            if (type) {
+    data.groups.forEach(
+        function (group) {
 
-                const item =
-                    document.createElement(
-                        "div"
-                    );
-
-                item.className =
-                    "schedule-item";
+            group.entries.forEach(
+                function (entry) {
 
 
-                item.innerHTML = `
+                    /* 開始 */
 
-                    <div class="schedule-dot"></div>
+                    if (
+                        entry.start
+                        &&
+                        entry.start.startsWith(
+                            targetDate
+                        )
+                    ) {
 
-                    <div>
+                        schedules.push({
 
-                        <div class="schedule-title">
-                            ${lottery.name}
-                        </div>
+                            type:
+                                entry.method
+                                ===
+                                "first-come"
 
-                        <div class="schedule-sub">
-                            ${type}
-                        </div>
+                                ? "先着開始"
 
-                    </div>
+                                : "応募開始",
 
-                `;
+                            group,
+                            entry,
+
+                            dateTime:
+                                entry.start
+
+                        });
+
+                    }
 
 
-                list.appendChild(item);
-            }
+                    /* 締切 */
+
+                    if (
+                        entry.end
+                        &&
+                        entry.end.startsWith(
+                            targetDate
+                        )
+                    ) {
+
+                        schedules.push({
+
+                            type:
+                                "応募締切",
+
+                            group,
+                            entry,
+
+                            dateTime:
+                                entry.end
+
+                        });
+
+                    }
+
+
+                    /* 結果発表 */
+
+                    if (
+                        entry.result
+                        &&
+                        entry.result.startsWith(
+                            targetDate
+                        )
+                    ) {
+
+                        schedules.push({
+
+                            type:
+                                "結果発表",
+
+                            group,
+                            entry,
+
+                            dateTime:
+                                entry.result
+
+                        });
+
+                    }
+
+                }
+            );
+
         }
     );
 
 
-    if (!list.children.length) {
+    schedules.sort(
+        function (a, b) {
+
+            return a.dateTime
+                .localeCompare(
+                    b.dateTime
+                );
+
+        }
+    );
+
+
+    if (
+        !schedules.length
+    ) {
 
         list.innerHTML = `
+
             <div class="schedule-item">
+
                 <div class="schedule-sub">
+
                     この日の予定はありません
+
                 </div>
+
             </div>
+
         `;
+
+        return;
     }
+
+
+    schedules.forEach(
+        function (schedule) {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "schedule-item";
+
+
+            item.innerHTML = `
+
+                <div
+                    class="schedule-dot">
+                </div>
+
+
+                <div>
+
+                    <div
+                        class="schedule-title">
+
+                        ${escapeHtml(
+                            schedule.group.name
+                        )}
+
+                    </div>
+
+
+                    <div
+                        class="schedule-sub">
+
+                        ${escapeHtml(
+                            schedule.entry.name
+                        )}
+
+                        <span
+                            class="schedule-method">
+
+                            ${getMethodLabel(
+                                schedule.entry.method
+                            )}
+
+                        </span>
+
+
+                        <br>
+
+
+                        ${schedule.type}：
+
+                        ${formatTime(
+                            schedule.dateTime
+                        )}
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            list.appendChild(
+                item
+            );
+
+        }
+    );
+
 }
 
 
-// ========================================
-// 前月・次月
-// ========================================
+/* ============================================================
+   ユーティリティ
+============================================================ */
 
-document.getElementById(
-    "prevMonth"
-).addEventListener(
-    "click",
-    () => {
+function findGroup(
+    groupId
+) {
 
-        currentDate.setMonth(
-            currentDate.getMonth() - 1
+    return data.groups.find(
+        group =>
+            group.id ===
+            groupId
+    );
+
+}
+
+
+function formatDateOnly(
+    date
+) {
+
+    const y =
+        date.getFullYear();
+
+
+    const m =
+        String(
+            date.getMonth() + 1
+        ).padStart(
+            2,
+            "0"
         );
 
-        renderCalendar();
-    }
-);
 
-
-document.getElementById(
-    "nextMonth"
-).addEventListener(
-    "click",
-    () => {
-
-        currentDate.setMonth(
-            currentDate.getMonth() + 1
+    const d =
+        String(
+            date.getDate()
+        ).padStart(
+            2,
+            "0"
         );
 
-        renderCalendar();
+
+    return `${y}-${m}-${d}`;
+
+}
+
+
+function formatDateTime(
+    value
+) {
+
+    if (!value) {
+
+        return "未設定";
+
     }
-);
 
 
-// ========================================
-// 今日
-// ========================================
+    const date =
+        new Date(value);
 
-document.getElementById(
-    "todayButton"
-).addEventListener(
-    "click",
-    () => {
 
-        currentDate =
-            new Date();
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
 
-        selectedDate =
-            new Date();
+        return value;
 
-        renderCalendar();
+    }
 
-        renderSchedule(
-            selectedDate
+
+    return (
+        `${date.getFullYear()}/`
+        +
+        `${String(
+            date.getMonth() + 1
+        ).padStart(2, "0")}/`
+        +
+        `${String(
+            date.getDate()
+        ).padStart(2, "0")} `
+        +
+        `${String(
+            date.getHours()
+        ).padStart(2, "0")}:`
+        +
+        `${String(
+            date.getMinutes()
+        ).padStart(2, "0")}`
+    );
+
+}
+
+
+function formatTime(
+    value
+) {
+
+    if (!value) {
+
+        return "時刻未設定";
+
+    }
+
+
+    const date =
+        new Date(value);
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return value;
+
+    }
+
+
+    return (
+        String(
+            date.getHours()
+        ).padStart(2, "0")
+        +
+        ":"
+        +
+        String(
+            date.getMinutes()
+        ).padStart(2, "0")
+    );
+
+}
+
+
+function getDateRangeText(
+    entry
+) {
+
+    const start =
+        entry.start
+        ? formatDateTime(
+            entry.start
+        )
+        : "開始日未設定";
+
+
+    const end =
+        entry.end
+        ? formatDateTime(
+            entry.end
+        )
+        : "終了日未定";
+
+
+    return (
+        start
+        +
+        " ～ "
+        +
+        end
+    );
+
+}
+
+
+function isSameDate(
+    a,
+    b
+) {
+
+    return (
+
+        a.getFullYear()
+        ===
+        b.getFullYear()
+
+        &&
+
+        a.getMonth()
+        ===
+        b.getMonth()
+
+        &&
+
+        a.getDate()
+        ===
+        b.getDate()
+
+    );
+
+}
+
+
+function escapeHtml(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
+
+}
+
+
+/* ============================================================
+   モーダルを閉じる
+============================================================ */
+
+function closeAllModals() {
+
+    document
+        .querySelectorAll(
+            ".modal-background"
+        )
+        .forEach(
+            modal => {
+
+                modal.classList.remove(
+                    "show"
+                );
+
+            }
         );
-    }
-);
 
 
-// ========================================
-// 初期化
-// ========================================
+    currentGroupId = null;
 
-loadLotteries();
+    editingEntryId = null;
 
-renderLotteryList();
-
-renderCalendar();
-
-renderSchedule(
-    selectedDate
-);
+}
