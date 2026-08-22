@@ -485,13 +485,15 @@ function setupEvents() {
             "click",
             function () {
 
-                if (currentGroupId) {
-
-                    openEntryModal(
-                        currentGroupId
-                    );
-
+                if (!currentGroupId) {
+                return;
                 }
+
+                // 現在表示されている詳細画面を閉じる
+                detailModalBackground.classList.remove("show");
+
+                // 応募枠登録画面を開く
+                openEntryModal(currentGroupId);
 
             }
         );
