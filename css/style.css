@@ -999,3 +999,148 @@ body {
         box-sizing: border-box;
     }
 }
+
+/* =========================
+   追加機能・詳細画面
+========================= */
+
+.detail-group-header {
+    padding: 4px 0 14px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.detail-group-title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.detail-group-info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.detail-info-item {
+    background: #f6f8fb;
+    border-radius: 10px;
+    padding: 10px;
+    min-width: 0;
+}
+
+.detail-info-label {
+    display: block;
+    font-size: 11px;
+    color: #777;
+    margin-bottom: 3px;
+}
+
+.detail-info-item strong {
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.detail-group-memo {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #fafafa;
+    border-radius: 9px;
+    font-size: 13px;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.detail-entry {
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.detail-entry-title {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.detail-entry-title > span:first-child {
+    min-width: 0;
+    word-break: break-word;
+}
+
+.detail-line {
+    margin-top: 7px;
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.detail-actions .small-button {
+    min-width: 0;
+}
+
+.detail-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.danger-button {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e25b5b;
+    border-radius: 8px;
+    background: white;
+    color: #d63d3d;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* datetime-local はスマホで内容の最小幅が広がるため強制的に縮める */
+.modal input[type="datetime-local"] {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .modal {
+        width: 100%;
+        max-width: 100%;
+        padding: 16px;
+    }
+
+    .modal input,
+    .modal select,
+    .modal textarea {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .modal input[type="datetime-local"] {
+        font-size: 15px;
+        padding: 9px 5px;
+        letter-spacing: -0.2px;
+        overflow: hidden;
+    }
+
+    .detail-entry-title {
+        flex-wrap: wrap;
+    }
+}

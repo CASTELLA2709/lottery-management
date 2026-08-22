@@ -33,6 +33,9 @@ let data = {
 
             name: "○○ライブ チケット",
 
+            /* 【今回追加】公演日 */
+            performanceDate: "",
+
             memo:
                 "複数の先行・販売をまとめて管理",
 
@@ -55,6 +58,10 @@ let data = {
 
                     result: "2026-06-15T18:00",
 
+                    /* 【今回追加】 */
+                    paymentMethod: "",
+                    paymentDeadline: "",
+
                     url: "",
 
                     memo: ""
@@ -76,6 +83,10 @@ let data = {
 
                     result: "2026-06-25T18:00",
 
+                    /* 【今回追加】 */
+                    paymentMethod: "",
+                    paymentDeadline: "",
+
                     url: "",
 
                     memo: ""
@@ -96,6 +107,10 @@ let data = {
                     end: "",
 
                     result: "",
+
+                    /* 【今回追加】 */
+                    paymentMethod: "",
+                    paymentDeadline: "",
 
                     url: "",
 
@@ -230,6 +245,52 @@ function loadData() {
 
         data =
             JSON.parse(saved);
+
+        /*
+         * 【今回追加】
+         * 既存データに新項目がなくてもエラーにならないよう補完
+         */
+        data.groups.forEach(
+            group => {
+
+                if (
+                    group.performanceDate === undefined
+                ) {
+
+                    group.performanceDate = "";
+
+                }
+
+                if (!Array.isArray(group.entries)) {
+
+                    group.entries = [];
+
+                }
+
+                group.entries.forEach(
+                    entry => {
+
+                        if (
+                            entry.paymentMethod === undefined
+                        ) {
+
+                            entry.paymentMethod = "";
+
+                        }
+
+                        if (
+                            entry.paymentDeadline === undefined
+                        ) {
+
+                            entry.paymentDeadline = "";
+
+                        }
+
+                    }
+                );
+
+            }
+        );
 
     } catch (error) {
 
@@ -477,6 +538,15 @@ function setupEvents() {
         );
 
 
+    /*
+     * 【今回追加】
+     *
+     * 詳細画面から応募枠を追加する場合、
+     * 詳細モーダルを閉じてから応募枠モーダルを開く。
+     *
+     * これにより「応募枠登録画面が前に表示されない」
+     * 問題を修正。
+     */
     document
         .getElementById(
             "addRelatedEntryButton"
@@ -487,7 +557,36 @@ function setupEvents() {
 
                 if (currentGroupId) {
 
+                    detailModalBackground
+                        .classList.remove(
+                            "show"
+                        );
+
                     openEntryModal(
+                        currentGroupId
+                    );
+
+                }
+
+            }
+        );
+
+
+    /*
+     * 【今回追加】
+     * 応募グループ自体を削除
+     */
+    document
+        .getElementById(
+            "deleteGroupButton"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                if (currentGroupId) {
+
+                    deleteGroup(
                         currentGroupId
                     );
 
@@ -664,7 +763,33 @@ const METHOD_LABELS = {
 };
 
 
-function getStatusLabel(status) {
+/*
+ * 【今回追加】
+ * 支払方法
+ */
+const PAYMENT_METHOD_LABELS = {
+
+    "credit-card":
+        "クレジットカード",
+
+    "convenience-store":
+        "コンビニ",
+
+    "bank-transfer":
+        "銀行振込",
+
+    paypay:
+        "PayPay",
+
+    other:
+        "その他"
+
+};
+
+
+function getStatusLabel(
+    status
+) {
 
     return (
         STATUS_LABELS[status]
@@ -674,11 +799,73 @@ function getStatusLabel(status) {
 }
 
 
-function getMethodLabel(method) {
+function getMethodLabel(
+    method
+) {
 
     return (
         METHOD_LABELS[method]
         || method
+    );
+
+}
+
+
+/*
+ * 【今回追加】
+ */
+function getPaymentMethodLabel(
+    method
+) {
+
+    if (!method) {
+
+        return "未設定";
+
+    }
+
+    return (
+        PAYMENT_METHOD_LABELS[method]
+        || method
+    );
+
+}
+
+
+/*
+ * 【今回追加】
+ * YYYY-MM-DD → YYYY年MM月DD日
+ */
+function formatDateOnlyDisplay(
+    value
+) {
+
+    if (!value) {
+
+        return "未設定";
+
+    }
+
+
+    const parts =
+        value.split("-");
+
+
+    if (
+        parts.length !== 3
+    ) {
+
+        return value;
+
+    }
+
+
+    return (
+        `${Number(parts[0])}年`
+        +
+        `${Number(parts[1])}月`
+        +
+        `${Number(parts[2])}日`
     );
 
 }
@@ -692,8 +879,17 @@ function updateCounts() {
 
     const entries =
         data.groups.flatMap(
-            group => group.entries
+            group =>
+                group.entries
         );
+
+
+    document
+        .getElementById(
+            "totalCount"
+        )
+        .textContent =
+        entries.length;
 
 
     document
@@ -703,7 +899,8 @@ function updateCounts() {
         .textContent =
         entries.filter(
             entry =>
-                entry.status === "planned"
+                entry.status ===
+                "planned"
         ).length;
 
 
@@ -714,7 +911,8 @@ function updateCounts() {
         .textContent =
         entries.filter(
             entry =>
-                entry.status === "applying"
+                entry.status ===
+                "applying"
         ).length;
 
 
@@ -725,7 +923,8 @@ function updateCounts() {
         .textContent =
         entries.filter(
             entry =>
-                entry.status === "waiting"
+                entry.status ===
+                "waiting"
         ).length;
 
 
@@ -736,7 +935,8 @@ function updateCounts() {
         .textContent =
         entries.filter(
             entry =>
-                entry.status === "won"
+                entry.status ===
+                "won"
         ).length;
 
 }
@@ -772,7 +972,10 @@ function renderGroups(
     if (!showAll) {
 
         groups =
-            groups.slice(0, 10);
+            groups.slice(
+                0,
+                10
+            );
 
     }
 
@@ -780,17 +983,22 @@ function renderGroups(
     if (!groups.length) {
 
         groupList.innerHTML = `
+
             <div class="group-summary">
+
                 登録されている応募はありません。
+
             </div>
+
         `;
 
         return;
+
     }
 
 
     groups.forEach(
-        group => {
+        function (group) {
 
             const card =
                 document.createElement(
@@ -818,7 +1026,8 @@ function renderGroups(
                     .map(
                         entry => `
 
-                            <div class="entry-mini">
+                            <div
+                                class="entry-mini">
 
                                 <div
                                     class="entry-mini-left">
@@ -831,6 +1040,7 @@ function renderGroups(
                                         )}
 
                                     </div>
+
 
                                     <div
                                         class="entry-mini-date">
@@ -894,6 +1104,27 @@ function renderGroups(
                             件
 
                         </div>
+
+
+                        /*
+                         * 【今回追加】
+                         * 公演日表示
+                         */
+                        ${
+                            group.performanceDate
+                            ? `
+                                <div
+                                    class="group-performance-date">
+
+                                    公演日：
+                                    ${formatDateOnlyDisplay(
+                                        group.performanceDate
+                                    )}
+
+                                </div>
+                            `
+                            : ""
+                        }
 
                     </div>
 
@@ -1055,6 +1286,16 @@ function openGroupModal() {
         .value = "";
 
 
+    /*
+     * 【今回追加】
+     */
+    document
+        .getElementById(
+            "performanceDate"
+        )
+        .value = "";
+
+
     document
         .getElementById(
             "groupMemo"
@@ -1070,6 +1311,10 @@ function openGroupModal() {
 }
 
 
+/* ============================================================
+   グループ保存
+============================================================ */
+
 function saveGroup() {
 
     const name =
@@ -1079,6 +1324,17 @@ function saveGroup() {
             )
             .value
             .trim();
+
+
+    /*
+     * 【今回追加】
+     */
+    const performanceDate =
+        document
+            .getElementById(
+                "performanceDate"
+            )
+            .value;
 
 
     const memo =
@@ -1097,20 +1353,32 @@ function saveGroup() {
         );
 
         return;
+
     }
 
 
     const group = {
 
-        id: createId(),
+        id:
+            createId(),
 
-        name: name,
+        name:
+            name,
 
-        memo: memo,
+        /*
+         * 【今回追加】
+         */
+        performanceDate:
+            performanceDate,
 
-        favorite: false,
+        memo:
+            memo,
 
-        entries: []
+        favorite:
+            false,
+
+        entries:
+            []
 
     };
 
@@ -1127,8 +1395,9 @@ function saveGroup() {
     renderGroups();
 
 
-    /* 登録後すぐ応募枠登録 */
-
+    /*
+     * 登録後すぐ応募枠登録
+     */
     openEntryModal(
         group.id
     );
@@ -1148,6 +1417,7 @@ function openEntryModal(
     currentGroupId =
         groupId;
 
+
     editingEntryId =
         entryId;
 
@@ -1161,6 +1431,7 @@ function openEntryModal(
     if (!group) {
 
         return;
+
     }
 
 
@@ -1191,7 +1462,8 @@ function openEntryModal(
         entry =
             group.entries.find(
                 x =>
-                    x.id === entryId
+                    x.id ===
+                    entryId
             );
 
     }
@@ -1202,7 +1474,8 @@ function openEntryModal(
             "entryName"
         )
         .value =
-        entry?.name || "";
+        entry?.name
+        || "";
 
 
     document
@@ -1210,7 +1483,8 @@ function openEntryModal(
             "entryMethod"
         )
         .value =
-        entry?.method || "lottery";
+        entry?.method
+        || "lottery";
 
 
     document
@@ -1218,7 +1492,8 @@ function openEntryModal(
             "entryStatus"
         )
         .value =
-        entry?.status || "planned";
+        entry?.status
+        || "planned";
 
 
     document
@@ -1226,7 +1501,8 @@ function openEntryModal(
             "entryStart"
         )
         .value =
-        entry?.start || "";
+        entry?.start
+        || "";
 
 
     document
@@ -1234,7 +1510,8 @@ function openEntryModal(
             "entryEnd"
         )
         .value =
-        entry?.end || "";
+        entry?.end
+        || "";
 
 
     document
@@ -1242,7 +1519,32 @@ function openEntryModal(
             "entryResult"
         )
         .value =
-        entry?.result || "";
+        entry?.result
+        || "";
+
+
+    /*
+     * 【今回追加】
+     */
+    document
+        .getElementById(
+            "entryPaymentMethod"
+        )
+        .value =
+        entry?.paymentMethod
+        || "";
+
+
+    /*
+     * 【今回追加】
+     */
+    document
+        .getElementById(
+            "entryPaymentDeadline"
+        )
+        .value =
+        entry?.paymentDeadline
+        || "";
 
 
     document
@@ -1250,7 +1552,8 @@ function openEntryModal(
             "entryUrl"
         )
         .value =
-        entry?.url || "";
+        entry?.url
+        || "";
 
 
     document
@@ -1258,7 +1561,8 @@ function openEntryModal(
             "entryMemo"
         )
         .value =
-        entry?.memo || "";
+        entry?.memo
+        || "";
 
 
     entryModalBackground
@@ -1284,6 +1588,7 @@ function saveEntry() {
     if (!group) {
 
         return;
+
     }
 
 
@@ -1303,6 +1608,7 @@ function saveEntry() {
         );
 
         return;
+
     }
 
 
@@ -1310,9 +1616,11 @@ function saveEntry() {
 
         id:
             editingEntryId
-            || createId(),
+            ||
+            createId(),
 
-        name: name,
+        name:
+            name,
 
         method:
             document
@@ -1349,6 +1657,29 @@ function saveEntry() {
                 )
                 .value,
 
+
+        /*
+         * 【今回追加】
+         */
+        paymentMethod:
+            document
+                .getElementById(
+                    "entryPaymentMethod"
+                )
+                .value,
+
+
+        /*
+         * 【今回追加】
+         */
+        paymentDeadline:
+            document
+                .getElementById(
+                    "entryPaymentDeadline"
+                )
+                .value,
+
+
         url:
             document
                 .getElementById(
@@ -1356,6 +1687,7 @@ function saveEntry() {
                 )
                 .value
                 .trim(),
+
 
         memo:
             document
@@ -1407,8 +1739,9 @@ function saveEntry() {
     );
 
 
-    /* 詳細画面 */
-
+    /*
+     * 詳細画面
+     */
     openDetail(
         group.id
     );
@@ -1437,6 +1770,7 @@ function openDetail(
     if (!group) {
 
         return;
+
     }
 
 
@@ -1448,11 +1782,39 @@ function openDetail(
 
     let html = `
 
-        <div class="group-name">
+        <div
+            class="group-detail-header">
 
-            ${escapeHtml(
-                group.name
-            )}
+            <div
+                class="group-name">
+
+                ${escapeHtml(
+                    group.name
+                )}
+
+            </div>
+
+
+            /*
+             * 【今回追加】
+             */
+            ${
+                group.performanceDate
+                ? `
+
+                    <div
+                        class="detail-performance-date">
+
+                        公演日：
+                        ${formatDateOnlyDisplay(
+                            group.performanceDate
+                        )}
+
+                    </div>
+
+                `
+                : ""
+            }
 
         </div>
 
@@ -1463,7 +1825,8 @@ function openDetail(
 
         html += `
 
-            <div class="group-summary">
+            <div
+                class="group-summary">
 
                 ${escapeHtml(
                     group.memo
@@ -1556,6 +1919,52 @@ function openDetail(
                     }
 
 
+                    /*
+                     * 【今回追加】
+                     * 支払方法
+                     */
+                    ${
+                        entry.paymentMethod
+                        ? `
+
+                            <div
+                                class="detail-line">
+
+                                支払方法：
+                                ${getPaymentMethodLabel(
+                                    entry.paymentMethod
+                                )}
+
+                            </div>
+
+                        `
+                        : ""
+                    }
+
+
+                    /*
+                     * 【今回追加】
+                     * 支払期限
+                     */
+                    ${
+                        entry.paymentDeadline
+                        ? `
+
+                            <div
+                                class="detail-line">
+
+                                支払期限：
+                                ${formatDateTime(
+                                    entry.paymentDeadline
+                                )}
+
+                            </div>
+
+                        `
+                        : ""
+                    }
+
+
                     ${
                         entry.memo
                         ? `
@@ -1583,7 +1992,9 @@ function openDetail(
                                 class="detail-line">
 
                                 <a
-                                    href="${escapeHtml(entry.url)}"
+                                    href="${escapeHtml(
+                                        entry.url
+                                    )}"
                                     target="_blank">
 
                                     応募ページを開く
@@ -1641,7 +2052,8 @@ function openDetail(
 
         html += `
 
-            <div class="group-summary">
+            <div
+                class="group-summary">
 
                 応募枠はまだありません。
 
@@ -1665,6 +2077,64 @@ function openDetail(
 
 
 /* ============================================================
+   【今回追加】
+   応募（グループ）削除
+============================================================ */
+
+function deleteGroup(
+    groupId
+) {
+
+    const group =
+        findGroup(
+            groupId
+        );
+
+
+    if (!group) {
+
+        return;
+
+    }
+
+
+    const message =
+        group.entries.length
+        ? `「${group.name}」と登録されている応募枠 ${group.entries.length} 件を削除しますか？`
+        : `「${group.name}」を削除しますか？`;
+
+
+    if (!confirm(message)) {
+
+        return;
+
+    }
+
+
+    data.groups =
+        data.groups.filter(
+            item =>
+                item.id !==
+                groupId
+        );
+
+
+    saveData();
+
+    closeAllModals();
+
+    renderGroups();
+
+    renderCalendar();
+
+    renderSchedule(
+        selectedDate
+    );
+
+}
+
+
+/* ============================================================
    応募枠削除
 ============================================================ */
 
@@ -1682,6 +2152,7 @@ function deleteEntry(
     if (!group) {
 
         return;
+
     }
 
 
@@ -1696,6 +2167,7 @@ function deleteEntry(
     if (!entry) {
 
         return;
+
     }
 
 
@@ -1706,6 +2178,7 @@ function deleteEntry(
     ) {
 
         return;
+
     }
 
 
@@ -1801,6 +2274,7 @@ function renderSearchResults() {
         resultList.innerHTML = "";
 
         return;
+
     }
 
 
@@ -1833,6 +2307,7 @@ function renderSearchResults() {
                         results.push({
 
                             group,
+
                             entry
 
                         });
@@ -1850,7 +2325,8 @@ function renderSearchResults() {
 
         resultList.innerHTML = `
 
-            <div class="group-summary">
+            <div
+                class="group-summary">
 
                 該当する応募はありません。
 
@@ -1859,6 +2335,7 @@ function renderSearchResults() {
         `;
 
         return;
+
     }
 
 
@@ -2130,7 +2607,10 @@ function createCalendarCell(
 
 
     events
-        .slice(0, 3)
+        .slice(
+            0,
+            3
+        )
         .forEach(
             event => {
 
@@ -2142,7 +2622,8 @@ function createCalendarCell(
 
                 element.className =
                     "calendar-event "
-                    + event.className;
+                    +
+                    event.className;
 
 
                 element.textContent =
@@ -2334,6 +2815,7 @@ function renderSchedule(
 
 
     const weekdays = [
+
         "日",
         "月",
         "火",
@@ -2341,6 +2823,7 @@ function renderSchedule(
         "木",
         "金",
         "土"
+
     ];
 
 
@@ -2395,6 +2878,7 @@ function renderSchedule(
                                 : "応募開始",
 
                             group,
+
                             entry,
 
                             dateTime:
@@ -2421,6 +2905,7 @@ function renderSchedule(
                                 "応募締切",
 
                             group,
+
                             entry,
 
                             dateTime:
@@ -2447,6 +2932,7 @@ function renderSchedule(
                                 "結果発表",
 
                             group,
+
                             entry,
 
                             dateTime:
@@ -2481,9 +2967,11 @@ function renderSchedule(
 
         list.innerHTML = `
 
-            <div class="schedule-item">
+            <div
+                class="schedule-item">
 
-                <div class="schedule-sub">
+                <div
+                    class="schedule-sub">
 
                     この日の予定はありません
 
@@ -2494,6 +2982,7 @@ function renderSchedule(
         `;
 
         return;
+
     }
 
 
