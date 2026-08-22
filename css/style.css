@@ -1,0 +1,878 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    height: 100%;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background: #f5f6f8;
+}
+
+
+body {
+    overflow: hidden;
+}
+
+
+/* =========================
+   アプリ全体
+========================= */
+
+.app {
+    width: 100%;
+    height: 100vh;
+
+    max-width: 600px;
+
+    margin: 0 auto;
+
+    background: white;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+
+/* =========================
+   横スクロール部分
+========================= */
+
+.page-container {
+
+    display: flex;
+
+    width: 100%;
+    height: calc(100% - 70px);
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-snap-type: x mandatory;
+
+    scroll-behavior: smooth;
+
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: none;
+}
+
+
+.page-container::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* =========================
+   各ページ
+========================= */
+
+.page {
+
+    flex: 0 0 100%;
+
+    width: 100%;
+
+    height: 100%;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    scroll-snap-align: start;
+
+    padding-bottom: 30px;
+}
+
+
+/* =========================
+   ヘッダー
+========================= */
+
+.header {
+
+    height: 65px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    position: relative;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+
+.header h1 {
+
+    margin: 0;
+
+    font-size: 21px;
+
+    font-weight: 700;
+}
+
+
+.setting-button {
+
+    position: absolute;
+
+    right: 18px;
+
+    border: none;
+
+    background: transparent;
+
+    font-size: 25px;
+
+    cursor: pointer;
+}
+
+
+/* =========================
+   ステータス
+========================= */
+
+.status-area {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 8px;
+
+    padding: 15px;
+}
+
+
+.status-card {
+
+    border-radius: 9px;
+
+    text-align: center;
+
+    padding: 9px 4px;
+}
+
+
+.status-card span {
+
+    display: block;
+
+    font-size: 12px;
+
+    margin-bottom: 3px;
+}
+
+
+.status-card strong {
+
+    font-size: 23px;
+
+    display: inline-block;
+}
+
+
+.status-card small {
+
+    font-size: 11px;
+}
+
+
+/* ステータス色 */
+
+.status-card.blue {
+    background: #e8f3ff;
+    color: #0867c7;
+}
+
+
+.status-card.green {
+    background: #eaf8ea;
+    color: #298d35;
+}
+
+
+.status-card.orange {
+    background: #fff3df;
+    color: #d57500;
+}
+
+
+.status-card.pink {
+    background: #ffeaf0;
+    color: #d72c62;
+}
+
+
+/* =========================
+   セクション
+========================= */
+
+.section-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 8px 18px;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+
+.section-header h2 {
+
+    font-size: 18px;
+
+    margin: 0;
+}
+
+
+.section-header button {
+
+    border: none;
+
+    background: transparent;
+
+    color: #0867c7;
+
+    font-size: 13px;
+}
+
+
+/* =========================
+   抽選一覧
+========================= */
+
+.lottery-list {
+
+    padding: 0 15px;
+}
+
+
+.lottery-item {
+
+    padding: 15px 5px;
+
+    border-bottom: 1px solid #eeeeee;
+
+    position: relative;
+}
+
+
+.lottery-top {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.status-label {
+
+    border-radius: 6px;
+
+    padding: 5px 8px;
+
+    font-size: 11px;
+
+    white-space: nowrap;
+}
+
+
+.status-label.applying {
+
+    color: #299036;
+
+    background: #eaf8ea;
+}
+
+
+.status-label.waiting {
+
+    color: #d57500;
+
+    background: #fff2df;
+}
+
+
+.status-label.planned {
+
+    color: #0867c7;
+
+    background: #e7f2ff;
+}
+
+
+.status-label.winning {
+
+    color: #d72c62;
+
+    background: #ffe7ef;
+}
+
+
+.lottery-name {
+
+    font-size: 15px;
+
+    font-weight: 600;
+}
+
+
+.lottery-date {
+
+    margin-top: 7px;
+
+    margin-left: 2px;
+
+    font-size: 12px;
+
+    color: #555;
+}
+
+
+.arrow {
+
+    position: absolute;
+
+    right: 3px;
+
+    top: 50%;
+
+    font-size: 22px;
+
+    color: #176bc4;
+}
+
+
+/* =========================
+   新規登録ボタン
+========================= */
+
+.add-button {
+
+    display: block;
+
+    width: calc(100% - 40px);
+
+    margin: 25px auto;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #1675e5;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+.add-button:active {
+
+    transform: scale(0.98);
+}
+
+
+/* =========================
+   カレンダー
+========================= */
+
+.calendar {
+
+    padding: 10px 12px;
+}
+
+
+.calendar-navigation {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 5px 10px 12px;
+}
+
+
+.calendar-navigation h2 {
+
+    font-size: 18px;
+
+    margin: 0;
+}
+
+
+.calendar-navigation button {
+
+    border: none;
+
+    background: transparent;
+
+    font-size: 30px;
+
+    cursor: pointer;
+}
+
+
+.weekdays,
+.calendar-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(7, 1fr);
+}
+
+
+.weekdays div {
+
+    text-align: center;
+
+    padding: 8px 0;
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+
+.calendar-day {
+
+    min-height: 72px;
+
+    border-top: 1px solid #eeeeee;
+
+    border-right: 1px solid #eeeeee;
+
+    padding: 6px 4px;
+
+    position: relative;
+
+    cursor: pointer;
+}
+
+
+.calendar-day:nth-child(7n + 1) {
+
+    border-left: 1px solid #eeeeee;
+}
+
+
+.day-number {
+
+    font-size: 13px;
+
+    display: block;
+
+    margin-bottom: 4px;
+}
+
+
+.other-month {
+
+    color: #cccccc;
+}
+
+
+.today {
+
+    background: #eef6ff;
+}
+
+
+.today .day-number {
+
+    background: #1675e5;
+
+    color: white;
+
+    width: 27px;
+    height: 27px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+/* カレンダーイベント */
+
+.calendar-event {
+
+    font-size: 9px;
+
+    padding: 3px;
+
+    border-radius: 4px;
+
+    margin-top: 2px;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+}
+
+
+.event-start {
+
+    background: #e7f7e7;
+
+    color: #298d35;
+}
+
+
+.event-deadline {
+
+    background: #ffe9e9;
+
+    color: #d52d2d;
+}
+
+
+.event-result {
+
+    background: #e6f1ff;
+
+    color: #126bc8;
+}
+
+
+/* =========================
+   選択日の予定
+========================= */
+
+.schedule-area {
+
+    margin: 8px 12px;
+
+    border-top: 1px solid #eeeeee;
+}
+
+
+.schedule-area h2 {
+
+    font-size: 16px;
+
+    margin: 15px 5px;
+}
+
+
+.schedule-item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px 6px;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+
+.schedule-dot {
+
+    width: 10px;
+
+    height: 10px;
+
+    border-radius: 50%;
+
+    background: #2478d4;
+
+    flex-shrink: 0;
+}
+
+
+.schedule-title {
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+
+.schedule-sub {
+
+    font-size: 11px;
+
+    color: #666;
+
+    margin-top: 3px;
+}
+
+
+/* =========================
+   下部ナビ
+========================= */
+
+.bottom-nav {
+
+    height: 70px;
+
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    background: white;
+
+    border-top: 1px solid #dddddd;
+
+    position: absolute;
+
+    bottom: 0;
+
+    left: 0;
+
+    z-index: 10;
+}
+
+
+.nav-button {
+
+    border: none;
+
+    background: white;
+
+    color: #555;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 3px;
+
+    cursor: pointer;
+}
+
+
+.nav-button span {
+
+    font-size: 23px;
+}
+
+
+.nav-button small {
+
+    font-size: 10px;
+}
+
+
+.nav-button.active {
+
+    color: #1675e5;
+}
+
+
+/* =========================
+   モーダル
+========================= */
+
+.modal-background {
+
+    display: none;
+
+    position: fixed;
+
+    z-index: 100;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.4);
+
+    align-items: flex-end;
+
+    justify-content: center;
+}
+
+
+.modal-background.show {
+
+    display: flex;
+}
+
+
+.modal {
+
+    width: 100%;
+
+    max-width: 600px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: white;
+
+    border-radius: 18px 18px 0 0;
+
+    padding: 20px;
+}
+
+
+.modal-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+}
+
+
+.modal-header h2 {
+
+    font-size: 18px;
+
+    margin: 0 0 15px;
+}
+
+
+.modal-header button {
+
+    border: none;
+
+    background: transparent;
+
+    font-size: 28px;
+}
+
+
+.modal label {
+
+    display: block;
+
+    margin-top: 12px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+
+.modal input,
+.modal textarea {
+
+    width: 100%;
+
+    margin-top: 5px;
+
+    padding: 10px;
+
+    border: 1px solid #dddddd;
+
+    border-radius: 7px;
+
+    font-size: 14px;
+}
+
+
+.modal textarea {
+
+    height: 80px;
+
+    resize: none;
+}
+
+
+.modal-buttons {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 20px;
+}
+
+
+.modal-buttons button {
+
+    flex: 1;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+}
+
+
+.cancel-button {
+
+    background: white;
+
+    border: 1px solid #cccccc;
+}
+
+
+.save-button {
+
+    background: #1675e5;
+
+    color: white;
+
+    border: none;
+}
+
+
+/* =========================
+   PC対応
+========================= */
+
+@media (min-width: 700px) {
+
+    .app {
+
+        margin-top: 20px;
+
+        height: calc(100vh - 40px);
+
+        border-radius: 20px;
+
+        box-shadow:
+            0 5px 30px rgba(0, 0, 0, 0.1);
+    }
+
+}
