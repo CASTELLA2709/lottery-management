@@ -989,3 +989,13 @@ body {
     max-height: 55px;
     overflow-y: auto;
 }
+
+@media (max-width: 768px) {
+    .date-input,
+    .date-input input,
+    input[type="date"],
+    input[type="datetime-local"] {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
