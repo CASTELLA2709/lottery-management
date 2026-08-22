@@ -978,13 +978,16 @@ body {
     transform: scale(0.98);
 }
 
-.calendar-day {
-    height: 100px;
-    overflow-y: auto;
-    box-sizing: border-box;
+.calendar-week {
+    height: 90px;
 }
 
-.calendar-day-events {
-    max-height: 70px;
+.calendar-day {
+    height: 90px;
+    overflow: hidden;
+}
+
+.events {
+    max-height: 55px;
     overflow-y: auto;
 }
