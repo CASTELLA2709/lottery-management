@@ -1619,10 +1619,14 @@ function openDetail(
                         <button
                             class="small-button"
                             onclick="
-                                deleteEntry(
+                                document
+                                    .getElementById('detailModalBackground')
+                                    .classList.remove('show');
+
+                                openEntryModal(
                                     '${group.id}',
                                     '${entry.id}'
-                                )
+                                );
                             ">
 
                             削除
