@@ -990,6 +990,22 @@ body {
     overflow-y: auto;
 }
 
+/* =========================
+   日時入力（スマホ）
+========================= */
+
+.modal input[type="datetime-local"] {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+
+    padding: 10px 8px;
+
+    font-size: 14px;
+}
+
 @media (max-width: 768px) {
     .date-input,
     .date-input input,
