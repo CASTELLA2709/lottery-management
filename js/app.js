@@ -485,13 +485,27 @@ function setupEvents() {
             "click",
             function () {
 
-                if (currentGroupId) {
+                if (!currentGroupId) {
+                    return;
+                }
 
-                    openEntryModal(
-                        currentGroupId
+                const groupId =
+                    currentGroupId;
+
+                /*
+                * 詳細画面を閉じる
+                */
+                detailModalBackground
+                    .classList.remove(
+                        "show"
                     );
 
-                }
+                /*
+                * 応募枠登録画面を開く
+                */
+                openEntryModal(
+                    groupId
+                );
 
             }
         );
@@ -1268,6 +1282,44 @@ function openEntryModal(
 
 }
 
+function editEntryFromDetail(
+    groupId,
+    entryId
+) {
+
+    /*
+     * 詳細画面を閉じる
+     */
+    detailModalBackground
+        .classList.remove(
+            "show"
+        );
+
+
+    /*
+     * 編集画面を開く
+     */
+    openEntryModal(
+        groupId,
+        entryId
+    );
+
+
+    /*
+     * 編集画面を一番上にする
+     */
+    const modal =
+        entryModalBackground
+            .querySelector(".modal");
+
+    if (modal) {
+
+        modal.scrollTop = 0;
+
+    }
+
+}
+
 
 /* ============================================================
    応募枠保存
@@ -1603,7 +1655,7 @@ function openDetail(
                         <button
                             class="small-button"
                             onclick="
-                                openEntryModal(
+                                editEntryFromDetail(
                                     '${group.id}',
                                     '${entry.id}'
                                 )
