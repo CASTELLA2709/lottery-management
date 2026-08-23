@@ -1001,9 +1001,9 @@ body {
 
     box-sizing: border-box;
 
-    padding: 10px 8px;
+    padding: 9px 6px;
 
-    font-size: 14px;
+    font-size: 13px;
 }
 
 @media (max-width: 768px) {
