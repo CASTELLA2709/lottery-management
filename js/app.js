@@ -1820,6 +1820,28 @@ function deleteEntry(
 
 }
 
+function deleteGroup(groupId) {
+
+    const confirmed =
+        confirm("このイベントを削除しますか？");
+
+    if (!confirmed) {
+        return;
+    }
+
+    data.groups =
+        data.groups.filter(
+            group => group.id !== groupId
+        );
+
+    // LocalStorageへ保存
+    saveData();
+
+    // 一覧を再描画
+    renderGroups();
+
+}
+
 
 /* ============================================================
    検索
