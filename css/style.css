@@ -1009,8 +1009,8 @@ body {
 #entryStart,
 #entryEnd,
 #entryResult {
-    width: 100%;
-    max-width: 100%;
+    width: 90%;
+    max-width: 90%;
     min-width: 0;
     box-sizing: border-box;
 
