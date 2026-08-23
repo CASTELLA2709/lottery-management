@@ -1006,6 +1006,17 @@ body {
     font-size: 13px;
 }
 
+#entryStart,
+#entryEnd,
+#entryResult {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    font-size: 13px;
+    padding: 9px 6px;
+}
+
 @media (max-width: 768px) {
     .date-input,
     .date-input input,
