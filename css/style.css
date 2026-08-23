@@ -1022,6 +1022,43 @@ body {
     margin-right: auto;
 }
 
+.group-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.group-header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.delete-group-icon {
+    flex-shrink: 0;
+
+    width: 32px;
+    height: 32px;
+
+    margin-left: 8px;
+
+    padding: 0;
+
+    border: none;
+    background: transparent;
+
+    font-size: 18px;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-group-icon:active {
+    transform: scale(0.9);
+}
+
 @media (max-width: 768px) {
     .date-input,
     .date-input input,

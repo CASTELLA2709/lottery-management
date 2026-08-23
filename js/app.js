@@ -882,7 +882,8 @@ function renderGroups(
                 <div
                     class="group-card-header">
 
-                    <div>
+                    <div
+                        class="group-header-info">
 
                         <div
                             class="group-name">
@@ -910,6 +911,17 @@ function renderGroups(
                         </div>
 
                     </div>
+
+
+                    <button
+                        type="button"
+                        class="delete-group-icon"
+                        data-group-id="${group.id}"
+                        aria-label="イベントを削除">
+
+                        🗑️
+
+                    </button>
 
                 </div>
 
@@ -981,6 +993,28 @@ function renderGroups(
                 </div>
 
             `;
+
+            /* イベント削除 */
+
+card
+    .querySelector(
+        ".delete-group-icon"
+    )
+    .addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+            const groupId =
+                this.dataset.groupId;
+
+            deleteGroup(
+                groupId
+            );
+
+        }
+    );
 
 
             /* 詳細 */
