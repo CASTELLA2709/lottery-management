@@ -131,21 +131,58 @@ body {
 }
 
 
-.setting-button {
-
+.header-actions {
     position: absolute;
-
+    top: 50%;
     right: 18px;
 
-    border: none;
+    transform: translateY(-50%);
 
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-button {
+    position: static;
+
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+    border: none;
     background: transparent;
 
     font-size: 25px;
-
     cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+.header-actions .add-button {
+    position: static;
+
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+    border: none;
+    border-radius: 0;
+
+    background: transparent !important;
+    color: #000 !important;
+
+    font-size: 25px;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transform: translateY(-4px);
+}
 
 /* =========================
    ステータス
