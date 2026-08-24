@@ -140,7 +140,7 @@ body {
 
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
 }
 
 .setting-button {
@@ -181,7 +181,8 @@ body {
     align-items: center;
     justify-content: center;
 
-    transform: translateY(-4px);
+    transform: translate(30px, -6px);
+    
 }
 
 /* =========================
