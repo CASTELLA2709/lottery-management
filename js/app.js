@@ -373,20 +373,7 @@ function setupEvents() {
         );
 
 
-    /* ホーム */
 
-    document
-        .getElementById(
-            "homeButton"
-        )
-        .addEventListener(
-            "click",
-            function () {
-
-                goToPage(0);
-
-            }
-        );
 
 
     /* 新規グループ */
