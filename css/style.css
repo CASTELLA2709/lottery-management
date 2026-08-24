@@ -1223,7 +1223,30 @@ body {
 }
 
 
+/* =========================
+   上部ヘッダー固定
+========================= */
 
+header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    background: #ffffff;
+}
+
+
+/* =========================
+   メインタイトル部分
+========================= */
+
+.section-header {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+
+    background: #ffffff;
+}
 
 @media (max-width: 768px) {
     .date-input,
