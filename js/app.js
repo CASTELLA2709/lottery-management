@@ -1506,25 +1506,135 @@ function saveEntry() {
    詳細画面
 ============================================================ */
 
-function openDetail(
-    groupId
-) {
+function openDetail(groupId) {
+
+    const group =
+        findGroup(groupId);
+
+    if (!group) {
+        return;
+    }
 
     currentGroupId =
         groupId;
 
 
-    const group =
-        findGroup(
-            groupId
-        );
+    /* =========================
+       応募状況
+    ========================= */
+
+    const waitingCount =
+        group.entries.filter(
+            entry =>
+                entry.status === "waiting"
+        ).length;
 
 
-    if (!group) {
+    const wonCount =
+        group.entries.filter(
+            entry =>
+                entry.status === "won"
+        ).length;
 
-        return;
-    }
 
+    const lostCount =
+        group.entries.filter(
+            entry =>
+                entry.status === "lost"
+        ).length;
+
+
+    /* =========================
+       応募枠
+    ========================= */
+
+    const entriesHtml =
+        group.entries
+            .map(
+                entry => `
+
+                    <div
+                        class="detail-entry-card">
+
+                        <div
+                            class="detail-entry-header">
+
+                            <div>
+
+                                <div
+                                    class="detail-entry-name">
+
+                                    ${escapeHtml(
+                                        entry.name
+                                    )}
+
+                                </div>
+
+                                <div
+                                    class="detail-entry-method">
+
+                                    ${getMethodLabel(
+                                        entry.method
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+                            <span
+                                class="
+                                    entry-mini-status
+                                    status-${entry.status}
+                                ">
+
+                                ${getStatusLabel(
+                                    entry.status
+                                )}
+
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="detail-entry-date">
+
+                            ${getDateRangeText(
+                                entry
+                            )}
+
+                        </div>
+
+
+                        <div
+                            class="detail-entry-actions">
+
+                            <button
+                                class="small-button"
+                                onclick="
+                                    editEntryFromDetail(
+                                        '${group.id}',
+                                        '${entry.id}'
+                                    )
+                                ">
+
+                                ✏ 編集
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
+
+
+    /* =========================
+       詳細画面
+    ========================= */
 
     const content =
         document.getElementById(
@@ -1532,221 +1642,135 @@ function openDetail(
         );
 
 
-    let html = `
+    content.innerHTML = `
 
-        <div class="group-name">
+        <div
+            class="detail-event-header">
 
-            ${escapeHtml(
-                group.name
-            )}
-
-        </div>
-
-    `;
-
-
-    if (group.memo) {
-
-        html += `
-
-            <div class="group-summary">
-
-                ${escapeHtml(
-                    group.memo
-                )}
-
-            </div>
-
-        `;
-
-    }
-
-
-    group.entries.forEach(
-        function (
-            entry,
-            index
-        ) {
-
-            html += `
+            <div>
 
                 <div
-                    class="detail-entry">
+                    class="detail-event-name">
 
-                    <div
-                        class="detail-entry-title">
-
-                        <span>
-
-                            ${index + 1}.
-                            ${escapeHtml(
-                                entry.name
-                            )}
-
-                        </span>
-
-
-                        <span
-                            class="
-                                entry-mini-status
-                                status-${entry.status}
-                            ">
-
-                            ${getStatusLabel(
-                                entry.status
-                            )}
-
-                        </span>
-
-                    </div>
-
-
-                    <div
-                        class="detail-line">
-
-                        方式：
-                        ${getMethodLabel(
-                            entry.method
-                        )}
-
-                    </div>
-
-
-                    <div
-                        class="detail-line">
-
-                        期間：
-                        ${getDateRangeText(
-                            entry
-                        )}
-
-                    </div>
-
-
-                    ${
-                        entry.result
-                        ? `
-
-                            <div
-                                class="detail-line">
-
-                                結果発表：
-                                ${formatDateTime(
-                                    entry.result
-                                )}
-
-                            </div>
-
-                        `
-                        : ""
-                    }
-
-
-                    ${
-                        entry.memo
-                        ? `
-
-                            <div
-                                class="detail-line">
-
-                                メモ：
-                                ${escapeHtml(
-                                    entry.memo
-                                )}
-
-                            </div>
-
-                        `
-                        : ""
-                    }
-
-
-                    ${
-                        entry.url
-                        ? `
-
-                            <div
-                                class="detail-line">
-
-                                <a
-                                    href="${escapeHtml(entry.url)}"
-                                    target="_blank">
-
-                                    応募ページを開く
-
-                                </a>
-
-                            </div>
-
-                        `
-                        : ""
-                    }
-
-
-                    <div
-                        class="detail-actions">
-
-                        <button
-                            class="small-button"
-                            onclick="
-                                editEntryFromDetail(
-                                    '${group.id}',
-                                    '${entry.id}'
-                                )
-                            ">
-
-                            編集
-
-                        </button>
-
-
-                        <button
-                            class="small-button"
-                            onclick="
-                                deleteEntry(
-                                    '${group.id}',
-                                    '${entry.id}'
-                                )
-                            ">
-
-                            削除
-
-                        </button>
-
-                    </div>
+                    ${escapeHtml(
+                        group.name
+                    )}
 
                 </div>
 
-            `;
 
-        }
-    );
+                ${
+                    group.date
+                    ? `
+                        <div
+                            class="detail-event-date">
 
+                            開催日：
+                            ${formatDate(
+                                group.date
+                            )}
 
-    if (!group.entries.length) {
-
-        html += `
-
-            <div class="group-summary">
-
-                応募枠はまだありません。
+                        </div>
+                    `
+                    : ""
+                }
 
             </div>
 
-        `;
 
-    }
+            <button
+                class="detail-delete-icon"
+                onclick="
+                    deleteGroup(
+                        '${group.id}'
+                    )
+                ">
+
+                🗑️
+
+            </button>
+
+        </div>
 
 
-    content.innerHTML =
-        html;
+        <div
+            class="detail-summary">
+
+            <div
+                class="detail-summary-item">
+
+                <strong>
+                    ${group.entries.length}
+                </strong>
+
+                <span>
+                    応募枠
+                </span>
+
+            </div>
+
+
+            <div
+                class="detail-summary-item">
+
+                <strong>
+                    ${waitingCount}
+                </strong>
+
+                <span>
+                    結果待ち
+                </span>
+
+            </div>
+
+
+            <div
+                class="detail-summary-item">
+
+                <strong>
+                    ${wonCount}
+                </strong>
+
+                <span>
+                    当選
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="detail-section-title">
+
+            応募履歴
+
+        </div>
+
+
+        <div
+            class="detail-entry-list">
+
+            ${entriesHtml}
+
+        </div>
+
+
+        <button
+            class="detail-add-button"
+            id="addRelatedEntryButton">
+
+            ＋ 関連する応募枠を追加
+
+        </button>
+
+    `;
 
 
     detailModalBackground
         .classList.add(
             "show"
         );
-
 }
 
 
