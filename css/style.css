@@ -17,7 +17,7 @@ body {
         sans-serif;
 
     background: #f5f6f8;
-    overscroll-behavior: none;
+    overscroll-behavior-y: none;
 }
 
 
@@ -1225,7 +1225,7 @@ body {
 
 
 .scroll-container {
-    overscroll-behavior: contain;
+    overscroll-behavior-y: none;
 }
 
 @media (max-width: 768px) {
