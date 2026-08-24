@@ -1223,29 +1223,15 @@ body {
 }
 
 
-/* =========================
-   上部ヘッダー固定
-========================= */
-
-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-
-    background: #ffffff;
+/* スワイプ時にページ単位でピタッと止める */
+.scroll-container {
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+    scroll-behavior: smooth;
 }
 
-
-/* =========================
-   メインタイトル部分
-========================= */
-
-.section-header {
-    position: sticky;
-    top: 0;
-    z-index: 90;
-
-    background: #ffffff;
+.scroll-container > * {
+    scroll-snap-align: start;
 }
 
 @media (max-width: 768px) {
