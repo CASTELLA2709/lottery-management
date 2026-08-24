@@ -17,6 +17,7 @@ body {
         sans-serif;
 
     background: #f5f6f8;
+    overscroll-behavior: none;
 }
 
 
