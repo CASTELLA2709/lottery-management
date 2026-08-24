@@ -1223,15 +1223,8 @@ body {
 }
 
 
-/* スワイプ時にページ単位でピタッと止める */
 .scroll-container {
-    scroll-snap-type: x mandatory;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-}
-
-.scroll-container > * {
-    scroll-snap-align: start;
+    overscroll-behavior: contain;
 }
 
 @media (max-width: 768px) {
