@@ -1222,6 +1222,9 @@ body {
     cursor: pointer;
 }
 
+
+
+
 @media (max-width: 768px) {
     .date-input,
     .date-input input,

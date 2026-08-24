@@ -477,38 +477,36 @@ function setupEvents() {
         );
 
 
-    document
-        .getElementById(
-            "addRelatedEntryButton"
-        )
-        .addEventListener(
-            "click",
-            function () {
+    document.addEventListener(
+    "click",
+    function (event) {
 
-                if (!currentGroupId) {
-                    return;
-                }
+        if (
+            !event.target.closest(
+                "#addRelatedEntryButton"
+            )
+        ) {
+            return;
+        }
 
-                const groupId =
-                    currentGroupId;
+        if (!currentGroupId) {
+            return;
+        }
 
-                /*
-                * 詳細画面を閉じる
-                */
-                detailModalBackground
-                    .classList.remove(
-                        "show"
-                    );
+        const groupId =
+            currentGroupId;
 
-                /*
-                * 応募枠登録画面を開く
-                */
-                openEntryModal(
-                    groupId
-                );
+        detailModalBackground
+            .classList.remove(
+                "show"
+            );
 
-            }
+        openEntryModal(
+            groupId
         );
+
+    }
+);
 
 
     /* カレンダー */
