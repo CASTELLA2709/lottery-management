@@ -162,7 +162,7 @@ body {
 }
 
 .header-actions .add-button {
-    position: static;
+    position: relative;
 
     width: 40px;
     height: 40px;
@@ -181,7 +181,8 @@ body {
     align-items: center;
     justify-content: center;
 
-    
+    right: -28px;
+    top: -5px;
 }
 
 /* =========================
