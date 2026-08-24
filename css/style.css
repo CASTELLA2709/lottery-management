@@ -17,7 +17,6 @@ body {
         sans-serif;
 
     background: #f5f6f8;
-    overscroll-behavior-y: none;
 }
 
 
@@ -89,6 +88,8 @@ body {
 
     overflow-y: auto;
     overflow-x: hidden;
+
+    overscroll-behavior-y: none;
 
     scroll-snap-align: start;
 
