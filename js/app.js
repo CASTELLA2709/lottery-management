@@ -2634,7 +2634,14 @@ function renderSchedule(
             item.innerHTML = `
 
                 <div
-                    class="schedule-dot">
+                    class="schedule-dot ${
+                        schedule.type === "応募締切"
+                            ? "dot-deadline"
+                            : schedule.type === "結果発表"
+                                ? "dot-result"
+                                : schedule.type === "公演日"
+                                    ? "dot-performance"
+                                    : "dot-start"}">
                 </div>
 
 

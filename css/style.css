@@ -728,6 +728,22 @@ body {
     flex-shrink: 0;
 }
 
+.dot-start {
+    background: #4caf50;
+}
+
+.dot-deadline {
+    background: #e53935;
+}
+
+.dot-result {
+    background: #2478d4;
+}
+
+.dot-performance {
+    background: #2478d4;
+}
+
 
 .schedule-title {
 
