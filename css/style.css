@@ -1052,7 +1052,8 @@ body {
 
 #entryStart,
 #entryEnd,
-#entryResult {
+#entryResult,
+#groupDate {
     width: 90%;
     max-width: 90%;
     min-width: 0;
