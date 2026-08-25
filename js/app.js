@@ -1087,6 +1087,11 @@ function openGroupModal() {
         )
         .value = "";
 
+    document
+        .getElementById(
+            "groupDate"
+        )
+        .value = "";
 
     document
         .getElementById(
@@ -1134,17 +1139,15 @@ function saveGroup() {
 
 
     const group = {
-
         id: createId(),
-
         name: name,
-
+        date:
+            document
+                .getElementById("groupDate")
+                .value,
         memo: memo,
-
         favorite: false,
-
         entries: []
-
     };
 
 
@@ -2337,6 +2340,7 @@ function getCalendarEvents(
 
     data.groups.forEach(
         function (group) {
+            
 
             group.entries.forEach(
                 function (entry) {
@@ -2705,6 +2709,24 @@ function findGroup(
 
 }
 
+function formatDate(value) {
+
+    if (!value) {
+        return "";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return (
+        `${date.getFullYear()}/` +
+        `${String(date.getMonth() + 1).padStart(2, "0")}/` +
+        `${String(date.getDate()).padStart(2, "0")}`
+    );
+}
 
 function formatDateOnly(
     date
